@@ -8,6 +8,7 @@ Base inicial de AgentFlow construida sobre Next.js con App Router, TypeScript y 
 - React 19
 - TypeScript 5
 - Tailwind CSS 4
+- shadcn/ui
 - ESLint 9
 
 ## Estructura inicial
@@ -18,11 +19,28 @@ app/
   layout.tsx
   page.tsx
 components/
+  chat/
+  forms/
+  layout/
   marketing/
     feature-card.tsx
     section-title.tsx
+  shared/
+  ui/
+    button.tsx
 lib/
+  env/
+  openai/
   site.ts
+  supabase/
+  utils.ts
+  validators/
+types/
+  database.ts
+  openai.ts
+utils/
+  constants.ts
+  format.ts
 public/
 ```
 
@@ -63,8 +81,15 @@ npm run lint
 ## Notas para continuar
 
 - `app/` contiene las rutas y layouts del App Router.
+- `app/(dashboard)` y `app/(auth)` quedan listos para futuras secciones sin alterar las rutas actuales.
+- `app/api` queda reservado para webhooks, endpoints internos y acciones server-to-server.
 - `components/` guarda UI reutilizable fuera del sistema de rutas.
+- `components/ui/` contiene los componentes de `shadcn/ui` generados por el CLI.
+- `lib/openai/` y `lib/supabase/` quedan preparados para integrar servicios externos mas adelante.
+- `types/` centraliza tipos compartidos de dominio, base de datos e IA.
+- `utils/` agrupa helpers puros y reutilizables.
 - `lib/site.ts` centraliza texto y configuracion basica del proyecto.
+- `lib/utils.ts` expone la utilidad `cn` usada por `shadcn/ui`.
 - La configuracion actual de Next.js, TypeScript, ESLint y Tailwind se mantiene intacta.
 
 ## Siguientes ideas

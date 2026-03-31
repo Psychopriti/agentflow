@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { FeatureCard } from "@/components/marketing/feature-card";
 import { SectionTitle } from "@/components/marketing/section-title";
 import {
@@ -28,18 +29,17 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row">
-              <a
-                href="#estructura"
-                className="inline-flex items-center justify-center rounded-full bg-cyan-300 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200"
+              <Button asChild size="lg" className="rounded-full">
+                <a href="#estructura">Ver estructura base</a>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
               >
-                Ver estructura base
-              </a>
-              <a
-                href="#siguientes-pasos"
-                className="inline-flex items-center justify-center rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/5"
-              >
-                Revisar siguientes pasos
-              </a>
+                <a href="#siguientes-pasos">Revisar siguientes pasos</a>
+              </Button>
             </div>
           </div>
 
