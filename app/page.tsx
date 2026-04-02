@@ -1,114 +1,93 @@
-import { Button } from "@/components/ui/button";
-import { FeatureCard } from "@/components/marketing/feature-card";
-import { SectionTitle } from "@/components/marketing/section-title";
-import {
-  agentFlowHighlights,
-  siteConfig,
-  starterChecklist,
-} from "@/lib/site";
+import { MoveUpRight } from "lucide-react";
+import { SiteHeader } from "@/components/layout/site-header";
+
+const agentLabels = [
+  {
+    label: "Implementacion de Campanas",
+    className: "left-8 top-9 sm:left-12 sm:top-10",
+  },
+  {
+    label: "Agente de Investigacion",
+    className: "right-4 top-8 sm:right-6 sm:top-9",
+  },
+  {
+    label: "Creacion de Contenido",
+    className: "bottom-6 left-4 sm:bottom-7 sm:left-3",
+  },
+];
 
 export default function Home() {
   return (
-    <main className="flex-1">
-      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-16 px-6 py-20 sm:px-10 lg:px-12">
-        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-          <div className="space-y-8">
-            <span className="inline-flex w-fit rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200">
-              Next.js 16 + React 19 + Tailwind CSS 4
-            </span>
-            <div className="space-y-5">
-              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                {siteConfig.name} comienza con una base limpia y lista para
-                evolucionar.
-              </h1>
-              <p className="max-w-2xl text-lg leading-8 text-slate-300">
-                Esta plantilla deja preparado el punto de partida para construir
-                un dashboard, panel operativo o experiencia web centrada en
-                flujos de agentes sin tocar la configuracion actual del
-                proyecto.
-              </p>
-            </div>
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <Button asChild size="lg" className="rounded-full">
-                <a href="#estructura">Ver estructura base</a>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-              >
-                <a href="#siguientes-pasos">Revisar siguientes pasos</a>
-              </Button>
-            </div>
-          </div>
+    <main className="min-h-screen bg-[#050505] text-white">
+      <section className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col px-5 py-5 sm:px-8 sm:py-7">
+        <div className="flex min-h-[calc(100vh-2.5rem)] flex-1 flex-col rounded-[2rem] border border-white/8 bg-[#080808] px-5 py-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:px-8 sm:py-7 lg:px-10 lg:py-8">
+          <SiteHeader currentPath="/" />
 
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-cyan-950/20 backdrop-blur">
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/70 p-6">
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-cyan-300">
-                Starter status
-              </p>
-              <div className="space-y-3 text-sm text-slate-300">
-                <div className="flex items-center justify-between gap-4 rounded-2xl bg-white/5 px-4 py-3">
-                  <span>TypeScript</span>
-                  <span className="font-semibold text-white">Activo</span>
-                </div>
-                <div className="flex items-center justify-between gap-4 rounded-2xl bg-white/5 px-4 py-3">
-                  <span>App Router</span>
-                  <span className="font-semibold text-white">Listo</span>
-                </div>
-                <div className="flex items-center justify-between gap-4 rounded-2xl bg-white/5 px-4 py-3">
-                  <span>Tailwind CSS</span>
-                  <span className="font-semibold text-white">Integrado</span>
-                </div>
-                <div className="flex items-center justify-between gap-4 rounded-2xl bg-white/5 px-4 py-3">
-                  <span>README inicial</span>
-                  <span className="font-semibold text-white">Actualizado</span>
+          <div
+            id="inicio"
+            className="flex flex-1 flex-col justify-between gap-10 pb-4 pt-10 sm:pt-14"
+          >
+            <div className="space-y-8">
+              <h1 className="max-w-5xl text-balance text-[2.4rem] font-medium leading-[0.98] tracking-[-0.065em] text-white sm:text-[3.8rem] lg:text-[4.9rem]">
+                Instala agentes de IA en minutos, sin codigo
+              </h1>
+
+              <div className="relative mx-auto w-full max-w-[1040px] pt-10">
+                <div className="absolute inset-x-0 bottom-0 h-[58%] rounded-[2rem] bg-[#d9ff00]" />
+
+                <div className="relative mx-auto w-[92%] overflow-hidden rounded-[1.8rem] border border-white/10 bg-[#cab8a9] shadow-[0_35px_70px_rgba(0,0,0,0.35)]">
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(66,44,30,0.15),rgba(255,255,255,0.08),rgba(97,58,34,0.18))]" />
+                  <div className="absolute inset-y-0 left-0 w-[12%] bg-[linear-gradient(180deg,#bab6b0,#7d7066)]" />
+                  <div className="absolute inset-y-0 left-[7.5%] w-[2.5%] bg-[linear-gradient(180deg,#87786d,#54483f)]" />
+                  <div className="absolute left-[18%] top-[7%] h-[16%] w-[22%] rounded-md bg-[linear-gradient(180deg,#8b6845,#c2915e)] shadow-[0_10px_18px_rgba(0,0,0,0.16)]" />
+                  <div className="absolute left-[47%] top-[8%] h-[7%] w-[11%] rounded-full bg-[#314538]/40 blur-xl" />
+                  <div className="absolute right-[11%] top-[11%] h-[28%] w-[19%] rounded-[0.8rem] border border-[#a79083] bg-[linear-gradient(180deg,#f1e5db,#d3c0b0)]" />
+                  <div className="absolute bottom-[13%] left-[19%] h-[22%] w-[22%] rounded-t-[0.8rem] bg-[linear-gradient(180deg,#7d5c3f,#53311f)]" />
+                  <div className="absolute bottom-[15%] left-[25%] h-[16%] w-[12%] rounded-[0.6rem] bg-[linear-gradient(180deg,#d7d6d4,#8c8c8c)] shadow-[0_12px_20px_rgba(0,0,0,0.12)]" />
+                  <div className="absolute bottom-[13%] right-[20%] h-[34%] w-[19%] rounded-[45%_45%_38%_38%] bg-[linear-gradient(180deg,#15403b,#08231f)]" />
+                  <div className="absolute bottom-[10%] right-[14%] h-[36%] w-[10%] rounded-[40%] bg-[linear-gradient(180deg,#c18b60,#82552f)]" />
+                  <div className="absolute bottom-[3%] right-[8%] h-[42%] w-[18%] rounded-t-[45%] rounded-b-[16%] bg-[linear-gradient(180deg,#bb885d,#774d2d)]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_55%_38%,rgba(255,255,255,0.38),transparent_18%),radial-gradient(circle_at_48%_22%,rgba(255,255,255,0.2),transparent_12%),radial-gradient(circle_at_63%_65%,rgba(0,0,0,0.18),transparent_22%)]" />
+
+                  <div className="relative aspect-[16/8.3] w-full" />
+
+                  {agentLabels.map((item) => (
+                    <div
+                      key={item.label}
+                      className={`absolute ${item.className} rounded-full bg-[#8f90ff]/90 px-5 py-3 text-center text-xs font-light text-white shadow-[0_10px_26px_rgba(143,144,255,0.32)] sm:px-7 sm:text-sm`}
+                    >
+                      <span className="block max-w-[10rem] leading-tight sm:max-w-[12rem]">
+                        {item.label}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
+
+            <footer className="flex flex-col gap-6 pt-4 text-[#7f9d12] sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex items-end gap-4">
+                <div className="flex gap-2">
+                  <span className="h-12 w-[2px] origin-bottom -rotate-[16deg] bg-[#0b0b0b] shadow-[0_0_0_1px_rgba(127,157,18,0.18)]" />
+                  <span className="mt-3 h-8 w-[2px] origin-bottom rotate-[12deg] bg-[#0b0b0b] shadow-[0_0_0_1px_rgba(127,157,18,0.18)]" />
+                </div>
+                <p className="font-heading text-[0.62rem] uppercase tracking-[0.18em] text-[#D7F205]">
+                  Agent Flow.
+                  <span className="ml-2 text-[#6b8510]">2026</span>
+                </p>
+              </div>
+
+              <a
+                id="explorar"
+                href="#"
+                className="inline-flex items-center gap-2 self-start rounded-full border border-[#222] px-4 py-2 text-[0.68rem] uppercase tracking-[0.24em] text-[#6b8510] transition hover:border-[#38451a] hover:text-[#99bf17] sm:self-auto"
+              >
+                All Rights Reserved
+                <MoveUpRight className="size-3.5" />
+              </a>
+            </footer>
           </div>
         </div>
-
-        <section id="estructura" className="space-y-6">
-          <SectionTitle
-            eyebrow="Estructura base"
-            title="Una organizacion inicial para construir AgentFlow sin friccion."
-            description="Separamos contenido, UI reutilizable y configuracion compartida para que el siguiente paso sea agregar features, no limpiar el starter."
-          />
-          <div className="grid gap-5 md:grid-cols-3">
-            {agentFlowHighlights.map((item) => (
-              <FeatureCard
-                key={item.title}
-                title={item.title}
-                description={item.description}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section id="siguientes-pasos" className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-4">
-            <SectionTitle
-              eyebrow="Siguientes pasos"
-              title="Checklist sugerido para empezar a construir el producto."
-              description="La idea es dejar una base neutra y ordenada para que puedas especializarla segun el dominio del proyecto."
-            />
-          </div>
-          <div className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6">
-            {starterChecklist.map((item, index) => (
-              <div
-                key={item}
-                className="flex gap-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-300 font-semibold text-slate-950">
-                  {index + 1}
-                </span>
-                <p className="text-sm leading-7 text-slate-300">{item}</p>
-              </div>
-            ))}
-          </div>
-        </section>
       </section>
     </main>
   );
