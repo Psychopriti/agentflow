@@ -4,11 +4,11 @@ import { AuthSessionControls } from "@/components/auth/auth-session-controls";
 import { getCurrentUser } from "@/lib/auth";
 
 const navItems = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Marketplace", href: "/marketplace" },
-  { label: "Precios", href: "#" },
-  { label: "Developers", href: "#" },
   { label: "Inicio", href: "/" },
+  { label: "Marketplace", href: "/marketplace" },
+  { label: "Workflows", href: "/workflows" },
+  { label: "Developers", href: "/developers" },
+  { label: "Dashboard", href: "/dashboard" },
 ];
 
 type SiteHeaderProps = {
@@ -29,7 +29,7 @@ export async function SiteHeader({ currentPath }: SiteHeaderProps) {
       </Link>
 
       <nav className="flex justify-center lg:flex-1">
-        <div className="flex w-full max-w-max flex-wrap items-center justify-center gap-2 rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(88,88,88,0.85),rgba(56,56,56,0.92))] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur">
+        <div className="flex w-full max-w-max flex-wrap items-center justify-center gap-1.5 rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(88,88,88,0.85),rgba(56,56,56,0.92))] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur">
           {navItems.map((item) => {
             const isActive = item.href === currentPath;
 
@@ -37,9 +37,9 @@ export async function SiteHeader({ currentPath }: SiteHeaderProps) {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`rounded-full px-3 py-1.5 text-[0.72rem] transition ${
+                className={`rounded-full px-3 py-1.5 text-[0.68rem] transition ${
                   isActive
-                    ? "bg-white/10 text-white"
+                    ? "bg-white/10 text-[#d7f205]"
                     : "text-white/80 hover:bg-white/8 hover:text-white"
                 }`}
               >

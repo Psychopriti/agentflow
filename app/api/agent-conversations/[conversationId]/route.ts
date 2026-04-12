@@ -41,7 +41,7 @@ export async function PATCH(request: Request, context: ConversationRouteContext)
     const conversation = await updateConversationMetadata({
       conversationId,
       profileId: auth.profile.id,
-      title,
+      title: title ?? undefined,
     });
 
     return jsonSuccess({

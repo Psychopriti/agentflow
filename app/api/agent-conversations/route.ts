@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 import { createAgentConversation } from "@/ai/agent-conversations";
 import {
   handleRouteError,

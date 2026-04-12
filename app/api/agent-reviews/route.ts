@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 import { upsertAgentReview } from "@/ai/agent-reviews";
 import {
   handleRouteError,
