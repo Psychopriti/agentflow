@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, Sparkles, Star } from "lucide-react";
+
 import { getPublishedAgentBySlug, listOwnedAgentIds } from "@/ai/agent-runner";
 import { getAgentReviewComposer, listAgentReviews } from "@/ai/agent-reviews";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getCurrentProfile } from "@/lib/auth";
 import { featuredAgents, getAgentBySlug } from "@/lib/agents";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AgentAcquireButton } from "./agent-acquire-button";
 import { AgentReviewsSection } from "./agent-reviews-section";
 
@@ -15,33 +17,86 @@ type AgentDetailPageProps = {
   }>;
 };
 
+const genericBenefits = [
+  {
+    icon: "*",
+    title: "Listo para usarse en AgentFlow.",
+    description:
+      "El agente ya paso por revision y puede activarse desde el marketplace como una opcion publicada.",
+  },
+  {
+    icon: "+",
+    title: "Enfocado en una tarea clara.",
+    description:
+      "Su prompt y configuracion se evaluaron para entregar una experiencia concreta y util.",
+  },
+  {
+    icon: ">",
+    title: "Mantenido dentro del ecosistema.",
+    description:
+      "Si deja de cumplir el estandar de AgentFlow, el equipo puede retirarlo del marketplace.",
+  },
+] as const;
+
 export function generateStaticParams() {
   return featuredAgents.map((agent) => ({ slug: agent.slug }));
+}
+
+async function getOwnerLabel(ownerProfileId: string | null, ownerType: string) {
+  if (ownerType === "platform") {
+    return "AgentFlow";
+  }
+
+  if (!ownerProfileId) {
+    return "Developer";
+  }
+
+  const profileResult = await supabaseAdmin
+    .from("profiles")
+    .select("full_name, email")
+    .eq("id", ownerProfileId)
+    .maybeSingle();
+
+  if (profileResult.error) {
+    return "Developer";
+  }
+
+  return profileResult.data?.full_name ?? profileResult.data?.email ?? "Developer";
 }
 
 export default async function AgentDetailPage({
   params,
 }: AgentDetailPageProps) {
   const { slug } = await params;
-  const agent = getAgentBySlug(slug);
-
-  if (!agent) {
-    notFound();
-  }
-
-  const publishedAgent = await getPublishedAgentBySlug(agent.slug);
+  const featuredAgent = getAgentBySlug(slug);
+  const publishedAgent = await getPublishedAgentBySlug(slug);
 
   if (!publishedAgent) {
     notFound();
   }
 
   const profile = await getCurrentProfile();
-  const [ownedAgentIds, reviewComposer, reviews] = await Promise.all([
+  const [ownedAgentIds, reviewComposer, reviews, ownerLabel] = await Promise.all([
     profile ? listOwnedAgentIds(profile.id) : Promise.resolve(new Set<string>()),
     getAgentReviewComposer(publishedAgent.id, profile?.id),
     listAgentReviews(publishedAgent.id, profile?.id),
+    getOwnerLabel(publishedAgent.owner_profile_id, publishedAgent.owner_type),
   ]);
   const averageRating = Number(publishedAgent.average_rating);
+  const detailTitle = featuredAgent?.title ?? publishedAgent.name;
+  const heroDescription =
+    featuredAgent?.heroDescription ??
+    publishedAgent.description ??
+    publishedAgent.short_description ??
+    "Agente publicado por un developer dentro del marketplace de AgentFlow.";
+  const priceLabel =
+    featuredAgent?.priceLabel ??
+    (publishedAgent.pricing_type === "free"
+      ? "Acceso inmediato gratis"
+      : `Compra por $${Number(publishedAgent.price ?? 0).toFixed(2)}`);
+  const conversationsLabel =
+    featuredAgent?.conversationsLabel ?? `by ${ownerLabel}`;
+  const benefits = featuredAgent?.benefits ?? genericBenefits;
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -58,7 +113,11 @@ export default async function AgentDetailPage({
 
               <div className="flex items-end justify-between gap-6">
                 <div className="relative mt-14 flex size-[7.8rem] items-center justify-center rounded-full border-[5px] border-white bg-[#07282d] shadow-[0_12px_30px_rgba(0,0,0,0.24)] sm:size-[8.8rem]">
-                  <div className="scale-[1.55]">{agent.icon}</div>
+                  {featuredAgent ? (
+                    <div className="scale-[1.55]">{featuredAgent.icon}</div>
+                  ) : (
+                    <Sparkles className="size-10 text-[#d9ff00]" />
+                  )}
                 </div>
                 <Link
                   href="/marketplace"
@@ -73,8 +132,11 @@ export default async function AgentDetailPage({
             <div className="grid gap-10 lg:grid-cols-[1.1fr_0.7fr] lg:items-start">
               <div>
                 <h1 className="max-w-3xl text-balance text-[2.7rem] font-medium leading-[0.95] tracking-[-0.065em] text-white sm:text-[4rem]">
-                  {agent.title}
+                  {detailTitle}
                 </h1>
+                <div className="mt-3 text-sm uppercase tracking-[0.2em] text-white/48">
+                  by {ownerLabel}
+                </div>
                 <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-white/70">
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
                     <Star className="size-4 fill-[#d9ff00] text-[#d9ff00]" />
@@ -91,7 +153,7 @@ export default async function AgentDetailPage({
                 </div>
 
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  {agent.benefits.map((benefit) => (
+                  {benefits.map((benefit) => (
                     <article
                       key={benefit.title}
                       className="rounded-[0.45rem] border border-white/10 bg-[linear-gradient(180deg,#1a1d37_0%,#1d2244_100%)] px-5 py-6 shadow-[0_16px_32px_rgba(0,0,0,0.18)]"
@@ -127,8 +189,8 @@ export default async function AgentDetailPage({
 
                   <AgentAcquireButton
                     agentId={publishedAgent.id}
-                    agentSlug={agent.slug}
-                    agentName={agent.title}
+                    agentSlug={slug}
+                    agentName={detailTitle}
                     isAuthenticated={Boolean(profile)}
                     initiallyOwned={ownedAgentIds.has(publishedAgent.id)}
                   />
@@ -136,13 +198,13 @@ export default async function AgentDetailPage({
 
                 <div className="mt-6 space-y-1 text-left">
                   <p className="text-[1.45rem] font-semibold leading-tight text-white">
-                    {agent.conversationsLabel}
+                    {conversationsLabel}
                   </p>
                   <p className="text-[1.45rem] font-semibold leading-tight text-white">
-                    {agent.priceLabel}
+                    {priceLabel}
                   </p>
                   <p className="mt-5 max-w-[18rem] text-sm leading-6 text-white/76">
-                    {agent.heroDescription}
+                    {heroDescription}
                   </p>
                 </div>
               </aside>
@@ -150,7 +212,7 @@ export default async function AgentDetailPage({
 
             <AgentReviewsSection
               agentId={publishedAgent.id}
-              agentName={agent.title}
+              agentName={detailTitle}
               averageRating={averageRating}
               totalReviews={publishedAgent.total_reviews}
               reviews={reviews}

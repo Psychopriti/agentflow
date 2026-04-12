@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { ensureProfileForUser } from "@/lib/auth";
+import { ensureProfileForUser, getDefaultRouteForRole } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import type { Database } from "@/types/database";
 
@@ -50,9 +50,9 @@ export async function signInAction(formData: FormData) {
   }
 
   if (result.data.user) {
-    await ensureProfileForUser(result.data.user);
+    const profile = await ensureProfileForUser(result.data.user);
+    redirect(getDefaultRouteForRole(profile.role));
   }
-
   redirect("/dashboard");
 }
 
@@ -81,7 +81,9 @@ export async function signUpAction(formData: FormData) {
         full_name: fullName,
         role,
       },
-      emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(
+        getDefaultRouteForRole(role),
+      )}`,
     },
   });
 
@@ -90,8 +92,8 @@ export async function signUpAction(formData: FormData) {
   }
 
   if (result.data.user && result.data.session) {
-    await ensureProfileForUser(result.data.user);
-    redirect("/dashboard");
+    const profile = await ensureProfileForUser(result.data.user);
+    redirect(getDefaultRouteForRole(profile.role));
   }
 
   redirect(

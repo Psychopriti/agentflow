@@ -11,6 +11,13 @@ export type AgentOwnerType = "platform" | "developer";
 export type AgentStatus = "draft" | "published" | "archived";
 export type AgentPricingType = "free" | "one_time";
 export type ExecutionStatus = "pending" | "completed" | "failed";
+export type AgentReviewStatus =
+  | "draft"
+  | "ready_for_review"
+  | "in_review"
+  | "changes_requested"
+  | "approved";
+export type AgentTestRunStatus = "not_run" | "passed" | "failed";
 export type PaymentStatus =
   | "pending"
   | "completed"
@@ -57,9 +64,15 @@ export type Database = {
           description: string | null;
           short_description: string | null;
           prompt_template: string | null;
+          model: string;
+          tool_definitions: Json;
           is_active: boolean;
           is_published: boolean;
           status: AgentStatus;
+          review_status: AgentReviewStatus;
+          validation_report: Json;
+          last_test_run_status: AgentTestRunStatus;
+          last_test_run_at: string | null;
           price: string;
           currency: string;
           pricing_type: AgentPricingType;
@@ -80,9 +93,15 @@ export type Database = {
           description?: string | null;
           short_description?: string | null;
           prompt_template?: string | null;
+          model?: string;
+          tool_definitions?: Json;
           is_active?: boolean;
           is_published?: boolean;
           status?: AgentStatus;
+          review_status?: AgentReviewStatus;
+          validation_report?: Json;
+          last_test_run_status?: AgentTestRunStatus;
+          last_test_run_at?: string | null;
           price?: string;
           currency?: string;
           pricing_type?: AgentPricingType;
@@ -103,9 +122,15 @@ export type Database = {
           description?: string | null;
           short_description?: string | null;
           prompt_template?: string | null;
+          model?: string;
+          tool_definitions?: Json;
           is_active?: boolean;
           is_published?: boolean;
           status?: AgentStatus;
+          review_status?: AgentReviewStatus;
+          validation_report?: Json;
+          last_test_run_status?: AgentTestRunStatus;
+          last_test_run_at?: string | null;
           price?: string;
           currency?: string;
           pricing_type?: AgentPricingType;
@@ -242,6 +267,69 @@ export type Database = {
         };
         Relationships: [];
       };
+      agent_tool_secrets: {
+        Row: {
+          id: string;
+          agent_id: string;
+          tool_name: string;
+          secret_key: string;
+          encrypted_value: string;
+          masked_value: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          agent_id: string;
+          tool_name: string;
+          secret_key?: string;
+          encrypted_value: string;
+          masked_value: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          agent_id?: string;
+          tool_name?: string;
+          secret_key?: string;
+          encrypted_value?: string;
+          masked_value?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      agent_test_runs: {
+        Row: {
+          id: string;
+          agent_id: string;
+          profile_id: string;
+          status: Exclude<AgentTestRunStatus, "not_run">;
+          input_data: Json;
+          output_data: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          agent_id: string;
+          profile_id: string;
+          status?: Exclude<AgentTestRunStatus, "not_run">;
+          input_data?: Json;
+          output_data?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          agent_id?: string;
+          profile_id?: string;
+          status?: Exclude<AgentTestRunStatus, "not_run">;
+          input_data?: Json;
+          output_data?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -251,6 +339,8 @@ export type Database = {
       agent_status: AgentStatus;
       agent_pricing_type: AgentPricingType;
       execution_status: ExecutionStatus;
+      agent_review_status: AgentReviewStatus;
+      agent_test_run_status: AgentTestRunStatus;
       payment_status: PaymentStatus;
     };
     CompositeTypes: Record<string, never>;

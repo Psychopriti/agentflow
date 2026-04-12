@@ -1,10 +1,10 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
 import { SiteHeader } from "@/components/layout/site-header";
-import { DeveloperMarketplaceCard } from "@/components/marketing/developer-marketplace-card";
-import { featuredDevelopers } from "@/lib/developers";
+import { listMarketplaceDevelopers } from "@/lib/developer-marketplace";
+import { DevelopersCarousel } from "./developers-carousel";
 
-export default function DevelopersPage() {
+export default async function DevelopersPage() {
+  const developers = await listMarketplaceDevelopers();
+
   return (
     <main className="min-h-screen bg-[#050505] text-white">
       <section className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col px-5 py-5 sm:px-8 sm:py-7">
@@ -16,40 +16,13 @@ export default function DevelopersPage() {
               Developers Destacados
             </h1>
 
-            <div className="mt-12 grid w-full gap-8 lg:grid-cols-3 lg:gap-16">
-              {featuredDevelopers.map((developer) => (
-                <DeveloperMarketplaceCard
-                  key={developer.slug}
-                  name={developer.name}
-                  role={developer.role}
-                  description={developer.shortDescription}
-                  avatar={developer.avatar}
-                  href={`/developers/${developer.slug}`}
-                />
-              ))}
-            </div>
-
-            <div className="mt-8 flex items-center gap-2 text-sm text-[#b891e9]">
-              <span className="text-base">*</span>
-              <span>Arrow ...</span>
-            </div>
-
-            <div className="mt-5 flex items-center gap-4">
-              <button
-                type="button"
-                aria-label="Anterior"
-                className="flex size-9 items-center justify-center rounded-lg bg-white text-black transition hover:bg-white/85"
-              >
-                <ChevronLeft className="size-4" />
-              </button>
-              <button
-                type="button"
-                aria-label="Siguiente"
-                className="flex size-9 items-center justify-center rounded-lg bg-[#e6f8ca] text-black transition hover:bg-[#f0ffdc]"
-              >
-                <ChevronRight className="size-4" />
-              </button>
-            </div>
+            {developers.length === 0 ? (
+              <div className="mt-12 w-full max-w-2xl rounded-[1.5rem] border border-dashed border-white/12 bg-white/[0.02] px-6 py-8 text-center text-sm leading-6 text-white/58">
+                Todavia no hay developers con agentes aprobados en el marketplace.
+              </div>
+            ) : (
+              <DevelopersCarousel developers={developers} />
+            )}
           </section>
         </div>
       </section>

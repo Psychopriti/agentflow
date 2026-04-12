@@ -1,15 +1,30 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
 import { listAgents } from "@/ai/agent-runner";
 import { SiteHeader } from "@/components/layout/site-header";
-import { MarketplaceCard } from "@/components/marketing/marketplace-card";
-import { featuredAgents } from "@/lib/agents";
+import { getAgentBySlug } from "@/lib/agents";
+import { MarketplaceCarousel } from "./marketplace-carousel";
 
 export default async function MarketplacePage() {
   const publishedAgents = await listAgents();
-  const agentsBySlug = new Map(
-    publishedAgents.map((agent) => [agent.slug, agent] as const),
-  );
+  const marketplaceItems = publishedAgents.map((agent) => {
+    const builtInAgent = getAgentBySlug(agent.slug);
+
+    return {
+      slug: agent.slug,
+      title: builtInAgent?.title ?? agent.name,
+      description:
+        agent.short_description ??
+        builtInAgent?.shortDescription ??
+        "Agente publicado en AgentFlow.",
+      ownerLabel: agent.ownerLabel,
+      averageRating: Number(agent.average_rating),
+      totalReviews: agent.total_reviews,
+      variant: (builtInAgent?.slug ?? "developer") as
+        | "lead-generation"
+        | "marketing-content"
+        | "research"
+        | "developer",
+    };
+  });
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -22,51 +37,13 @@ export default async function MarketplacePage() {
               Agentes Destacados
             </h1>
 
-            <div className="mt-12 grid w-full gap-8 lg:grid-cols-3 lg:gap-16">
-              {featuredAgents.flatMap((agent) => {
-                const publishedAgent = agentsBySlug.get(agent.slug);
-
-                if (!publishedAgent) {
-                  return [];
-                }
-
-                return [
-                  <MarketplaceCard
-                    key={agent.title}
-                    title={agent.title}
-                    description={
-                      publishedAgent.short_description ?? agent.shortDescription
-                    }
-                    icon={agent.icon}
-                    href={`/marketplace/${agent.slug}`}
-                    averageRating={Number(publishedAgent.average_rating)}
-                    totalReviews={publishedAgent.total_reviews}
-                  />,
-                ];
-              })}
-            </div>
-
-            <div className="mt-8 flex items-center gap-2 text-sm text-[#b891e9]">
-              <span className="text-base">✦</span>
-              <span>Arrow ...</span>
-            </div>
-
-            <div className="mt-5 flex items-center gap-4">
-              <button
-                type="button"
-                aria-label="Anterior"
-                className="flex size-9 items-center justify-center rounded-lg bg-white text-black transition hover:bg-white/85"
-              >
-                <ChevronLeft className="size-4" />
-              </button>
-              <button
-                type="button"
-                aria-label="Siguiente"
-                className="flex size-9 items-center justify-center rounded-lg bg-[#e6f8ca] text-black transition hover:bg-[#f0ffdc]"
-              >
-                <ChevronRight className="size-4" />
-              </button>
-            </div>
+            {marketplaceItems.length === 0 ? (
+              <div className="mt-12 w-full max-w-2xl rounded-[1.5rem] border border-dashed border-white/12 bg-white/[0.02] px-6 py-8 text-center text-sm leading-6 text-white/58">
+                Todavia no hay agentes publicados en el marketplace.
+              </div>
+            ) : (
+              <MarketplaceCarousel items={marketplaceItems} />
+            )}
           </section>
         </div>
       </section>

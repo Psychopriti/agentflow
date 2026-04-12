@@ -3,8 +3,11 @@ import { ensureConversationForExecution, updateConversationMetadata } from "@/ai
 import { runAgentWithLangChain, runAgentWithLangChainStream, canRunWithLangChain } from "@/ai/langchain";
 import { getPlatformAgentPrompt } from "@/ai/prompts";
 import { getPlatformAgentSystemPrompt } from "@/ai/prompts";
+import { listToolSecretsForAgent } from "@/lib/dev-center";
+import { parseToolDefinitions } from "@/lib/dev-tools";
 import { OPENAI_DEFAULT_MODEL, OPENAI_QUALITY_MODEL, openai } from "@/lib/openai";
 import { supabaseAdmin } from "@/lib/supabase";
+import { decryptSecretValue } from "@/lib/tool-secrets";
 
 import type { Database } from "@/types/database";
 import type { Json } from "@/types/database";
@@ -28,7 +31,9 @@ export type AgentListItem = Pick<
   | "total_reviews"
   | "total_runs"
   | "cover_image_url"
->;
+> & {
+  ownerLabel: string;
+};
 
 export type AgentRunnerInput = Pick<
   AgentRow,
@@ -38,6 +43,8 @@ export type AgentRunnerInput = Pick<
   | "owner_type"
   | "owner_profile_id"
   | "prompt_template"
+  | "model"
+  | "tool_definitions"
   | "is_active"
   | "is_published"
   | "status"
@@ -229,6 +236,234 @@ function resolvePrompt(agent: AgentRunnerInput, input: string) {
   return `${agent.prompt_template}\n\nUser input:\n${input}`;
 }
 
+function interpolateTemplate(template: string, values: Record<string, unknown>) {
+  return template.replace(/\{([^}]+)\}/g, (_, key: string) => {
+    const value = values[key];
+    return value == null ? "" : String(value);
+  });
+}
+
+function ensureSafeRemoteUrl(url: string) {
+  const parsed = new URL(url);
+
+  if (parsed.protocol !== "https:") {
+    throw new AgentExecutionError("Only https endpoints are allowed.", 400);
+  }
+
+  if (
+    parsed.hostname === "localhost" ||
+    parsed.hostname === "127.0.0.1" ||
+    parsed.hostname.endsWith(".local")
+  ) {
+    throw new AgentExecutionError("Local endpoints are not allowed.", 400);
+  }
+
+  return parsed.toString();
+}
+
+async function executeStructuredDeveloperTool(
+  agent: AgentRunnerInput,
+  toolName: string,
+  rawArguments: string,
+) {
+  const toolDefinitions = parseToolDefinitions(
+    JSON.stringify(agent.tool_definitions ?? []),
+  );
+  const toolDefinition = toolDefinitions.find((tool) => tool.tool_name === toolName);
+
+  if (!toolDefinition) {
+    throw new AgentExecutionError(`Tool "${toolName}" was not found.`, 404);
+  }
+
+  const parsedArguments = rawArguments.trim()
+    ? (JSON.parse(rawArguments) as Record<string, unknown>)
+    : {};
+  const secrets = await listToolSecretsForAgent(agent.id);
+  const storedSecret = secrets.find((secret) => secret.tool_name === toolName);
+  const resolvedHeaders = Object.fromEntries(
+    Object.entries(toolDefinition.headers_template).map(([key, value]) => [
+      key,
+      interpolateTemplate(value, parsedArguments),
+    ]),
+  );
+
+  if (toolDefinition.auth_type !== "none") {
+    if (!storedSecret) {
+      throw new AgentExecutionError(
+        `Tool "${toolName}" is missing its secret configuration.`,
+        400,
+      );
+    }
+
+    const secretValue = decryptSecretValue(storedSecret.encrypted_value);
+
+    if (toolDefinition.auth_type === "api_key") {
+      resolvedHeaders[toolDefinition.auth_header_name ?? "x-api-key"] = secretValue;
+    }
+
+    if (toolDefinition.auth_type === "bearer") {
+      resolvedHeaders.Authorization = `Bearer ${secretValue}`;
+    }
+
+    if (toolDefinition.auth_type === "header_custom") {
+      if (!toolDefinition.auth_header_name) {
+        throw new AgentExecutionError(
+          `Tool "${toolName}" requires auth_header_name.`,
+          400,
+        );
+      }
+
+      resolvedHeaders[toolDefinition.auth_header_name] = toolDefinition.auth_prefix
+        ? `${toolDefinition.auth_prefix} ${secretValue}`.trim()
+        : secretValue;
+    }
+  }
+
+  const endpointBase =
+    toolDefinition.source_type === "webhook"
+      ? toolDefinition.webhook_url
+      : `${toolDefinition.base_url}${interpolateTemplate(
+          toolDefinition.path_template ?? "",
+          parsedArguments,
+        )}`;
+
+  if (!endpointBase) {
+    throw new AgentExecutionError(`Tool "${toolName}" is missing an endpoint.`, 400);
+  }
+
+  const url = ensureSafeRemoteUrl(endpointBase);
+  const method =
+    toolDefinition.source_type === "webhook"
+      ? "POST"
+      : toolDefinition.method ?? "GET";
+  const bodyAllowed = !["GET", "HEAD"].includes(method);
+  const response = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...resolvedHeaders,
+    },
+    body: bodyAllowed ? JSON.stringify(parsedArguments) : undefined,
+    signal: AbortSignal.timeout(toolDefinition.timeout_ms),
+  });
+  const responseText = await response.text();
+  let parsedResponse: unknown = responseText;
+
+  try {
+    parsedResponse = JSON.parse(responseText);
+  } catch {
+    // Keep plain text when the provider does not return JSON.
+  }
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    tool_name: toolName,
+    data: parsedResponse,
+  };
+}
+
+async function runDeveloperAgentWithTools(
+  agent: AgentRunnerInput,
+  input: string,
+  onProgress?: AgentProgressReporter,
+) {
+  const toolDefinitions = parseToolDefinitions(
+    JSON.stringify(agent.tool_definitions ?? []),
+  );
+  const tools = toolDefinitions.map((toolDefinition) => ({
+    type: "function" as const,
+    function: {
+      name: toolDefinition.tool_name,
+      description: toolDefinition.description,
+      parameters: toolDefinition.input_schema,
+    },
+  }));
+  const messages: Array<Record<string, unknown>> = [
+    {
+      role: "system",
+      content: agent.prompt_template,
+    },
+    {
+      role: "user",
+      content: input,
+    },
+  ];
+
+  await onProgress?.({
+    id: "tool-capabilities",
+    kind: "status",
+    label: "Cargando tools del agente",
+    status: "completed",
+  });
+
+  for (let step = 0; step < 4; step += 1) {
+    const response = await openai.chat.completions.create({
+      model: agent.model || OPENAI_QUALITY_MODEL,
+      messages: messages as never,
+      tools,
+    });
+    const message = response.choices[0]?.message;
+
+    if (!message) {
+      throw new AgentExecutionError("Developer agent returned an empty response.", 500);
+    }
+
+    messages.push(message as never);
+
+    if (!message.tool_calls?.length) {
+      return {
+        output: message.content?.trim() || "",
+        metadata: {
+          provider: "openai",
+          model: response.model,
+          tool_count: toolDefinitions.length,
+        },
+      };
+    }
+
+    for (const toolCall of message.tool_calls) {
+      if (!("function" in toolCall)) {
+        throw new AgentExecutionError(
+          "Unsupported tool call format returned by the model.",
+          500,
+        );
+      }
+
+      await onProgress?.({
+        id: `tool-${toolCall.function.name}`,
+        kind: "status",
+        label: `Ejecutando ${toolCall.function.name}`,
+        status: "running",
+      });
+
+      const toolResult = await executeStructuredDeveloperTool(
+        agent,
+        toolCall.function.name,
+        toolCall.function.arguments,
+      );
+
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: JSON.stringify(toolResult),
+      });
+
+      await onProgress?.({
+        id: `tool-${toolCall.function.name}`,
+        kind: "status",
+        label: `${toolCall.function.name} completada`,
+        status: "completed",
+      });
+    }
+  }
+
+  throw new AgentExecutionError(
+    "The developer agent exceeded the maximum tool call depth.",
+    500,
+  );
+}
+
 function readJsonTextValue(
   value: Json | null | undefined,
   key: "input" | "text" | "error",
@@ -318,6 +553,29 @@ export async function listAgents() {
     throw new AgentExecutionError(result.error.message, 500);
   }
 
+  const ownerIds = Array.from(
+    new Set(
+      result.data
+        .map((agent) => agent.owner_profile_id)
+        .filter((value): value is string => Boolean(value)),
+    ),
+  );
+  const profilesResult =
+    ownerIds.length > 0
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", ownerIds)
+      : { data: [], error: null };
+
+  if (profilesResult.error) {
+    throw new AgentExecutionError(profilesResult.error.message, 500);
+  }
+
+  const profilesById = new Map(
+    profilesResult.data.map((profile) => [profile.id, profile] as const),
+  );
+
   return result.data.map((agent) => ({
     id: agent.id,
     name: agent.name,
@@ -331,6 +589,12 @@ export async function listAgents() {
     total_reviews: agent.total_reviews,
     total_runs: agent.total_runs,
     cover_image_url: agent.cover_image_url,
+    ownerLabel:
+      agent.owner_type === "platform"
+        ? "AgentFlow"
+        : profilesById.get(agent.owner_profile_id ?? "")?.full_name ??
+          profilesById.get(agent.owner_profile_id ?? "")?.email ??
+          "Developer",
   })) satisfies AgentListItem[];
 }
 
@@ -352,6 +616,29 @@ export async function listAccessibleAgents(profileId: string) {
     throw new AgentExecutionError(result.error.message, 500);
   }
 
+  const ownerIds = Array.from(
+    new Set(
+      result.data
+        .map((agent) => agent.owner_profile_id)
+        .filter((value): value is string => Boolean(value)),
+    ),
+  );
+  const profilesResult =
+    ownerIds.length > 0
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", ownerIds)
+      : { data: [], error: null };
+
+  if (profilesResult.error) {
+    throw new AgentExecutionError(profilesResult.error.message, 500);
+  }
+
+  const profilesById = new Map(
+    profilesResult.data.map((profile) => [profile.id, profile] as const),
+  );
+
   return result.data
     .filter((agent) => agent.status !== "archived")
     .map((agent) => ({
@@ -367,6 +654,12 @@ export async function listAccessibleAgents(profileId: string) {
       total_reviews: agent.total_reviews,
       total_runs: agent.total_runs,
       cover_image_url: agent.cover_image_url,
+      ownerLabel:
+        agent.owner_type === "platform"
+          ? "AgentFlow"
+          : profilesById.get(agent.owner_profile_id ?? "")?.full_name ??
+            profilesById.get(agent.owner_profile_id ?? "")?.email ??
+            "Developer",
     })) satisfies AgentListItem[];
 }
 
@@ -514,6 +807,14 @@ export async function runAgent(
     return runAgentWithLangChain(agent, normalizedInput);
   }
 
+  if (
+    agent.owner_type === "developer" &&
+    Array.isArray(agent.tool_definitions) &&
+    agent.tool_definitions.length > 0
+  ) {
+    return runDeveloperAgentWithTools(agent, normalizedInput, onProgress);
+  }
+
   const prompt = resolvePrompt(agent, normalizedInput);
 
   await onProgress?.({
@@ -530,7 +831,10 @@ export async function runAgent(
   });
 
   const response = await openai.chat.completions.create({
-    model: OPENAI_QUALITY_MODEL,
+    model:
+      agent.owner_type === "developer" && agent.model
+        ? agent.model
+        : OPENAI_QUALITY_MODEL,
     messages: [
       {
         role: "user",
@@ -550,12 +854,15 @@ export async function runAgent(
 
   return {
     output,
-    metadata: {
-      provider: "openai",
-      model: OPENAI_QUALITY_MODEL,
-    },
-  };
-}
+      metadata: {
+        provider: "openai",
+        model:
+          agent.owner_type === "developer" && agent.model
+            ? agent.model
+            : OPENAI_QUALITY_MODEL,
+      },
+    };
+  }
 
 async function createPendingExecution({
   agent,

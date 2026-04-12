@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { SiteHeader } from "@/components/layout/site-header";
-import { featuredAgents } from "@/lib/agents";
-import { featuredDevelopers, getDeveloperBySlug } from "@/lib/developers";
+import { MarketplaceCard } from "@/components/marketing/marketplace-card";
+import { listMarketplaceDevelopers } from "@/lib/developer-marketplace";
 
 type DeveloperDetailPageProps = {
   params: Promise<{
@@ -12,24 +12,42 @@ type DeveloperDetailPageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return featuredDevelopers.map((developer) => ({ slug: developer.slug }));
+const developerBenefits = [
+  {
+    icon: "*",
+    title: "Agentes ya aprobados.",
+    description:
+      "Todo lo que aparece aqui ya fue revisado y aprobado antes de publicarse en AgentFlow.",
+  },
+  {
+    icon: "+",
+    title: "Perfil publico del developer.",
+    description:
+      "La pagina concentra los agentes publicados de cada developer para que sea mas facil explorarlos.",
+  },
+  {
+    icon: ">",
+    title: "Curacion continua.",
+    description:
+      "Si un agente deja de cumplir el estandar, AgentFlow puede retirarlo del marketplace.",
+  },
+] as const;
+
+export async function generateStaticParams() {
+  const developers = await listMarketplaceDevelopers();
+  return developers.map((developer) => ({ slug: developer.slug }));
 }
 
 export default async function DeveloperDetailPage({
   params,
 }: DeveloperDetailPageProps) {
   const { slug } = await params;
-  const developer = getDeveloperBySlug(slug);
+  const developers = await listMarketplaceDevelopers();
+  const developer = developers.find((item) => item.slug === slug);
 
   if (!developer) {
     notFound();
   }
-
-  const relatedAgents = developer.agentSlugs.flatMap((agentSlug) => {
-    const agent = featuredAgents.find((item) => item.slug === agentSlug);
-    return agent ? [agent] : [];
-  });
 
   return (
     <main className="min-h-screen bg-[#050505] text-white">
@@ -45,8 +63,10 @@ export default async function DeveloperDetailPage({
               <div className="absolute right-0 top-0 h-full w-1/3 bg-[radial-gradient(circle_at_60%_40%,rgba(255,255,255,0.35),transparent_38%)]" />
 
               <div className="flex items-end justify-between gap-6">
-                <div className="relative mt-14 flex size-[7.8rem] items-center justify-center overflow-hidden rounded-full border-[5px] border-white bg-[#07282d] shadow-[0_12px_30px_rgba(0,0,0,0.24)] sm:size-[8.8rem]">
-                  {developer.avatar}
+                <div className="relative mt-14 flex size-[7.8rem] items-center justify-center overflow-hidden rounded-full border-[5px] border-white bg-[linear-gradient(180deg,#8f90ff_0%,#4c4fa9_100%)] shadow-[0_12px_30px_rgba(0,0,0,0.24)] sm:size-[8.8rem]">
+                  <span className="text-4xl font-semibold text-white">
+                    {developer.initials}
+                  </span>
                 </div>
                 <Link
                   href="/developers"
@@ -68,7 +88,7 @@ export default async function DeveloperDetailPage({
                 </p>
 
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  {developer.benefits.map((benefit) => (
+                  {developerBenefits.map((benefit) => (
                     <article
                       key={benefit.title}
                       className="rounded-[0.45rem] border border-white/10 bg-[linear-gradient(180deg,#1a1d37_0%,#1d2244_100%)] px-5 py-6 shadow-[0_16px_32px_rgba(0,0,0,0.18)]"
@@ -91,8 +111,10 @@ export default async function DeveloperDetailPage({
                 <div className="relative w-full max-w-[19rem]">
                   <div className="overflow-hidden rounded-[45%_45%_36%_36%/32%_32%_18%_18%] border border-[#d8d0bb] bg-[linear-gradient(180deg,#fbf3e7_0%,#d8c4af_55%,#7a4d2e_100%)] shadow-[0_28px_50px_rgba(0,0,0,0.28)]">
                     <div className="relative aspect-[0.8] w-full bg-[radial-gradient(circle_at_32%_18%,rgba(255,255,255,0.48),transparent_18%),linear-gradient(180deg,#e8e0d5_0%,#cab7a6_55%,#815433_100%)]">
-                      <div className="absolute inset-x-[18%] top-[12%] bottom-[18%] overflow-hidden rounded-[2rem]">
-                        {developer.avatar}
+                      <div className="absolute inset-x-[18%] top-[12%] bottom-[18%] flex items-center justify-center overflow-hidden rounded-[2rem] bg-[linear-gradient(180deg,#8f90ff_0%,#4c4fa9_100%)]">
+                        <span className="text-6xl font-semibold text-white">
+                          {developer.initials}
+                        </span>
                       </div>
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_28%,rgba(255,255,255,0.5),transparent_16%),radial-gradient(circle_at_55%_60%,rgba(0,0,0,0.2),transparent_20%)]" />
                     </div>
@@ -100,10 +122,10 @@ export default async function DeveloperDetailPage({
 
                   <div className="absolute inset-x-4 -bottom-5">
                     <Link
-                      href="/register"
+                      href="/marketplace"
                       className="flex items-center justify-center rounded-full border border-white/12 bg-[#8f90ff] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_30px_rgba(143,144,255,0.35)] transition hover:bg-[#a0a1ff]"
                     >
-                      Contactar developer
+                      Ver marketplace
                     </Link>
                   </div>
                 </div>
@@ -118,15 +140,41 @@ export default async function DeveloperDetailPage({
                   <p className="mt-5 max-w-[18rem] text-sm leading-6 text-white/76">
                     {developer.heroDescription}
                   </p>
-                  {relatedAgents.length > 0 ? (
-                    <p className="mt-5 text-xs uppercase tracking-[0.2em] text-white/38">
-                      Agentes relacionados:{" "}
-                      {relatedAgents.map((agent) => agent.title).join(", ")}
-                    </p>
-                  ) : null}
                 </div>
               </aside>
             </div>
+
+            <section>
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/42">
+                    Agentes publicados
+                  </p>
+                  <h2 className="mt-3 text-2xl font-medium tracking-[-0.04em] text-white">
+                    Catalogo del developer
+                  </h2>
+                </div>
+                <p className="text-sm text-white/55">
+                  {developer.approvedAgentCount} agente
+                  {developer.approvedAgentCount === 1 ? "" : "s"}
+                </p>
+              </div>
+
+              <div className="mt-8 grid gap-8 lg:grid-cols-3">
+                {developer.approvedAgents.map((agent) => (
+                  <MarketplaceCard
+                    key={agent.id}
+                    title={agent.name}
+                    description={agent.shortDescription}
+                    ownerLabel={developer.name}
+                    variant={agent.variant}
+                    href={`/marketplace/${agent.slug}`}
+                    averageRating={agent.averageRating}
+                    totalReviews={agent.totalReviews}
+                  />
+                ))}
+              </div>
+            </section>
           </section>
         </div>
       </section>
