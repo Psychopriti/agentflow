@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { listAgentConversations } from "@/ai/agent-conversations";
 import { listAccessibleAgents, listExecutionHistory } from "@/ai/agent-runner";
-import { ensureProfileForUser } from "@/lib/auth";
+import { ensureProfileForUser, getDefaultRouteForRole } from "@/lib/auth";
 import type {
   DashboardAgent,
   DashboardChatHistory,
@@ -66,6 +66,11 @@ export default async function DashboardPage() {
   }
 
   const profile = await ensureProfileForUser(user);
+
+  if (profile.role === "admin") {
+    redirect(getDefaultRouteForRole(profile.role));
+  }
+
   const [agents, conversations, executionHistory] = await Promise.all([
     listAccessibleAgents(profile.id),
     listAgentConversations(profile.id),

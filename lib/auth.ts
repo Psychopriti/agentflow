@@ -144,3 +144,7 @@ export async function requireCurrentProfile() {
 
   return profile;
 }
+
+export function getDefaultRouteForRole(role: ProfileRole) {
+  return role === "admin" ? "/review-center" : "/dashboard";
+}

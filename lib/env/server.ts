@@ -65,6 +65,14 @@ export function getSupabaseEnv(): SupabaseEnv {
   };
 }
 
+export function getSecretEncryptionEnv() {
+  return {
+    agentflowSecretEncryptionKey: getRequiredEnv(
+      "AGENTFLOW_SECRET_ENCRYPTION_KEY",
+    ),
+  };
+}
+
 export function getSearchEnv(): SearchEnv {
   return {
     serperApiKey: process.env.SERPER_API_KEY?.trim() || null,

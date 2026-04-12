@@ -5,20 +5,45 @@ import { Button } from "@/components/ui/button";
 
 type AuthSessionControlsProps = {
   isAuthenticated: boolean;
+  isDeveloper?: boolean;
+  isAdmin?: boolean;
+  currentPath?: string;
 };
 
 export function AuthSessionControls({
   isAuthenticated,
+  isDeveloper = false,
+  isAdmin = false,
+  currentPath,
 }: AuthSessionControlsProps) {
   if (isAuthenticated) {
     return (
       <div className="flex items-center gap-2">
-        <Button
-          asChild
-          className="h-auto rounded-full border border-white/12 bg-white/6 px-4 py-2.5 text-[0.74rem] font-medium text-white hover:bg-white/10"
-        >
-          <Link href="/dashboard">Dashboard</Link>
-        </Button>
+        {isAdmin ? (
+          <Button
+            asChild
+            className={`h-auto rounded-full border px-4 py-2.5 text-[0.74rem] font-medium transition ${
+              currentPath === "/review-center"
+                ? "border-[#d9ff00]/30 bg-[#d9ff00] text-black hover:bg-[#e5ff45]"
+                : "border-white/12 bg-white/6 text-white hover:bg-white/10"
+            }`}
+          >
+            <Link href="/review-center">Review Center</Link>
+          </Button>
+        ) : null}
+
+        {isDeveloper && !isAdmin ? (
+          <Button
+            asChild
+            className={`h-auto rounded-full border px-4 py-2.5 text-[0.74rem] font-medium transition ${
+              currentPath === "/dev-center"
+                ? "border-[#d9ff00]/30 bg-[#d9ff00] text-black hover:bg-[#e5ff45]"
+                : "border-white/12 bg-white/6 text-white hover:bg-white/10"
+            }`}
+          >
+            <Link href="/dev-center">Dev Center</Link>
+          </Button>
+        ) : null}
 
         <form action={signOutAction}>
           <Button
