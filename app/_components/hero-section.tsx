@@ -3,7 +3,6 @@
 import { MoveUpRight } from "lucide-react";
 import { motion } from "motion/react";
 
-import { AnimatedGroup } from "@/components/ui/animated-group";
 import { TextEffect } from "@/components/ui/text-effect";
 
 const agentLabels = [

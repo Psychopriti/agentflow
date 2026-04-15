@@ -29,7 +29,7 @@ type QueueAgent = {
   toolCount: number;
   model: string;
   pricing_type: string;
-  price: number | null;
+  price: string | null;
   developerName: string;
 };
 
