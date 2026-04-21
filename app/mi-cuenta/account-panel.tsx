@@ -1,14 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   BadgeX,
   BarChart3,
+  Bot,
+  ChevronRight,
+  CreditCard,
   Crown,
+  KeyRound,
   LockKeyhole,
+  Settings2,
   Sparkles,
+  User,
   type LucideIcon,
 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 import {
   unsubscribeMiunixPlusAction,
@@ -16,232 +24,471 @@ import {
 } from "@/app/actions/account";
 import type { DashboardAccount } from "@/lib/dashboard";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Tab = "perfil" | "agentes" | "facturacion" | "seguridad" | "preferencias";
+
 type AccountPanelProps = {
   account: DashboardAccount;
-  purchasedAgents: Array<{
-    id: string;
-    name: string;
-    slug: string;
-  }>;
+  purchasedAgents: Array<{ id: string; name: string; slug: string }>;
   flashMessage?: string;
   flashType?: "success" | "error";
 };
 
-function formatDateLabel(timestamp: string | null) {
-  if (!timestamp) {
-    return "Sin fecha";
-  }
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-  const date = new Date(timestamp);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Sin fecha";
-  }
-
-  return date.toLocaleDateString("es-NI", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+function formatDate(ts: string | null) {
+  if (!ts) return "Sin fecha";
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return "Sin fecha";
+  return d.toLocaleDateString("es-NI", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function AccountStatCard({
+// ─── Motion presets ───────────────────────────────────────────────────────────
+
+const fadeUp = {
+  initial: { opacity: 0, y: 18 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+  transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+};
+
+const stagger = (i: number) => ({
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.38, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+});
+
+// ─── Nav item ─────────────────────────────────────────────────────────────────
+
+function NavItem({
+  id,
+  label,
+  icon: Icon,
+  active,
+  onClick,
+}: {
+  id: Tab;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ x: 2 }}
+      whileTap={{ scale: 0.97 }}
+      className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all ${
+        active
+          ? "bg-[#d7f209]/10 text-[#d7f209]"
+          : "text-white/50 hover:bg-white/5 hover:text-white/80"
+      }`}
+    >
+      <span
+        className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+          active
+            ? "bg-[#d7f209]/15 text-[#d7f209]"
+            : "bg-white/5 text-white/40 group-hover:bg-white/8 group-hover:text-white/60"
+        }`}
+      >
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <span className="font-medium">{label}</span>
+      {active && (
+        <motion.div
+          layoutId="nav-pip"
+          className="ml-auto h-1.5 w-1.5 rounded-full bg-[#d7f209]"
+        />
+      )}
+    </motion.button>
+  );
+}
+
+// ─── Stat card ────────────────────────────────────────────────────────────────
+
+function StatCard({
   icon: Icon,
   label,
   value,
-  helper,
+  sub,
+  i,
 }: {
   icon: LucideIcon;
   label: string;
   value: string | number;
-  helper: string;
+  sub: string;
+  i: number;
 }) {
   return (
-    <article className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="rounded-xl border border-white/10 bg-white/6 p-2 text-white/60">
+    <motion.div {...stagger(i)} className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.03] p-5">
+      {/* subtle gradient blob */}
+      <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-[#858BE3]/10 blur-2xl transition-all group-hover:bg-[#858BE3]/18" />
+      <div className="flex items-start justify-between">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50">
           <Icon className="h-4 w-4" />
-        </div>
-        <span className="text-2xl font-semibold tracking-[-0.04em] text-white">
-          {value}
         </span>
+        <span className="text-2xl font-semibold tracking-tight text-white">{value}</span>
       </div>
-      <p className="mt-4 text-xs uppercase tracking-[0.16em] text-white/38">
-        {label}
-      </p>
-      <p className="mt-2 text-xs leading-5 text-white/55">{helper}</p>
-    </article>
+      <p className="mt-4 text-[11px] font-medium uppercase tracking-widest text-white/30">{label}</p>
+      <p className="mt-1 text-xs leading-5 text-white/45">{sub}</p>
+    </motion.div>
   );
 }
 
-export function AccountPanel({
-  account,
-  purchasedAgents,
-  flashMessage,
-  flashType,
-}: AccountPanelProps) {
+// ─── Section wrapper ──────────────────────────────────────────────────────────
+
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
-    <div className="flex w-full flex-col gap-5 py-10">
-      <section className="rounded-[1.6rem] border border-white/8 bg-[linear-gradient(135deg,rgba(35,51,45,0.95),rgba(12,12,12,0.96)_55%,rgba(217,255,0,0.13))] px-5 py-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-6">
+      <div className="border-b border-white/[0.06] pb-4">
+        <h2 className="font-heading text-lg font-semibold tracking-tight text-white">{title}</h2>
+        {description && <p className="mt-1 text-sm text-white/45">{description}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ─── Field row ────────────────────────────────────────────────────────────────
+
+function FieldRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-xs font-medium uppercase tracking-widest text-white/30">{label}</span>
+      <span className="text-sm text-white/75">{value}</span>
+    </div>
+  );
+}
+
+// ─── Placeholder section ──────────────────────────────────────────────────────
+
+function ComingSoon({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/10 py-16 text-center">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/20">
+        <Settings2 className="h-5 w-5" />
+      </span>
+      <p className="text-sm text-white/35">{label}</p>
+    </div>
+  );
+}
+
+// ─── Tab views ────────────────────────────────────────────────────────────────
+
+function TabPerfil({ account }: { account: DashboardAccount }) {
+  return (
+    <motion.div {...fadeUp} className="space-y-8">
+      {/* Stats row */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard icon={BarChart3} label="Prompts corridos" value={account.totalPromptRuns} sub="Ejecuciones totales registradas." i={0} />
+        <StatCard icon={Sparkles} label="Agentes activos" value={account.activeAgentCount} sub="Disponibles en tu dashboard." i={1} />
+        <StatCard icon={LockKeyhole} label="Privados" value={`${account.privateAgentCount}/${account.premiumAgentLimit}`} sub="Uso de capacidad MIUNIX+." i={2} />
+        <StatCard icon={Crown} label="Compras" value={account.purchasedAgentCount + account.purchasedWorkflowCount} sub="Agentes y workflows activos." i={3} />
+      </div>
+
+      <Section title="Información de perfil" description="Datos de identificación de tu cuenta.">
+        <div className="space-y-2">
+          <FieldRow label="Nombre" value={account.profileName} />
+          <FieldRow label="Correo" value={account.email ?? "Sin correo"} />
+          <FieldRow label="Rol" value={account.role.charAt(0).toUpperCase() + account.role.slice(1)} />
+        </div>
+      </Section>
+    </motion.div>
+  );
+}
+
+function TabAgentes({
+  purchasedAgents,
+  account,
+}: {
+  purchasedAgents: AccountPanelProps["purchasedAgents"];
+  account: DashboardAccount;
+}) {
+  return (
+    <motion.div {...fadeUp} className="space-y-8">
+      {/* MIUNIX+ card */}
+      <div className="relative overflow-hidden rounded-2xl border border-[#d7f209]/15 bg-[linear-gradient(135deg,rgba(215,242,9,0.06),rgba(9,9,11,0)_60%)] p-6">
+        <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-[#d7f209]/8 blur-3xl" />
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#d9ff00]/70">
-              Mi cuenta
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.06em] text-white">
-              {account.profileName}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/58">
-              Ajustes, actividad y suscripciones asociadas a tu perfil de Miunix.
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#d7f209]/20 bg-[#d7f209]/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-[#d7f209]">
+              <Crown className="h-3 w-3" /> MIUNIX+
+            </span>
+            <h3 className="mt-3 font-heading text-xl font-semibold tracking-tight text-white">
+              {account.isPremium ? account.premiumPlanName ?? "Plan activo" : "Sin plan activo"}
+            </h3>
+            <p className="mt-1.5 max-w-md text-sm leading-6 text-white/50">
+              {account.isPremium
+                ? `Activo desde ${formatDate(account.premiumSince)}. Tus agentes privados aparecen en el dashboard mientras el plan esté activo.`
+                : "Activa MIUNIX+ para crear y ejecutar agentes privados desde tu dashboard."}
             </p>
           </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-4 text-sm text-white/68">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/35">
-              Perfil
-            </p>
-            <p className="mt-2 max-w-[260px] truncate text-white">
-              {account.email ?? "Sin correo"}
-            </p>
-            <p className="mt-1 capitalize text-white/42">{account.role}</p>
-          </div>
-        </div>
-      </section>
-
-      {flashMessage ? (
-        <div
-          className={`rounded-2xl border px-4 py-3 text-sm ${
-            flashType === "error"
-              ? "border-red-400/20 bg-red-500/10 text-red-100"
-              : "border-[#d9ff00]/20 bg-[#d9ff00]/8 text-[#efffa8]"
-          }`}
-        >
-          {flashMessage}
-        </div>
-      ) : null}
-
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <AccountStatCard
-          icon={BarChart3}
-          label="Prompts corridos"
-          value={account.totalPromptRuns}
-          helper="Ejecuciones registradas en tus conversaciones."
-        />
-        <AccountStatCard
-          icon={Sparkles}
-          label="Agentes activos"
-          value={account.activeAgentCount}
-          helper="Agentes disponibles ahora en tu dashboard."
-        />
-        <AccountStatCard
-          icon={LockKeyhole}
-          label="Agentes privados"
-          value={`${account.privateAgentCount}/${account.premiumAgentLimit}`}
-          helper="Capacidad usada de tu plan MIUNIX+."
-        />
-        <AccountStatCard
-          icon={Crown}
-          label="Compras"
-          value={account.purchasedAgentCount + account.purchasedWorkflowCount}
-          helper="Agentes y workflows activos en la cuenta."
-        />
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-        <article className="rounded-[1.4rem] border border-white/8 bg-white/[0.03] px-5 py-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-white/35">
-                MIUNIX+
-              </p>
-              <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-white">
-                {account.isPremium
-                  ? account.premiumPlanName ?? "Plan activo"
-                  : "Sin plan activo"}
-              </h2>
-            </div>
-            <div className="rounded-full border border-[#d9ff00]/20 bg-[#d9ff00]/10 px-3 py-1 text-xs text-[#efffa8]">
-              {account.isPremium ? "Activo" : "Inactivo"}
-            </div>
-          </div>
-          <p className="mt-4 text-sm leading-6 text-white/55">
-            {account.isPremium
-              ? `Activo desde ${formatDateLabel(account.premiumSince)}. Tus agentes privados aparecen en Mis Agentes mientras el plan este activo.`
-              : "Activa MIUNIX+ para crear y ejecutar agentes privados desde el dashboard."}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link
               href={account.isPremium ? "/miunix-plus-center" : "/miunix-plus"}
-              className="rounded-xl bg-[#d9ff00] px-4 py-2 text-xs font-semibold text-black transition hover:bg-[#e8ff33]"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#d7f209] px-4 py-2 text-xs font-semibold text-black transition hover:bg-[#e4ff33]"
             >
-              {account.isPremium ? "Administrar agentes privados" : "Ver planes"}
+              {account.isPremium ? "Administrar agentes" : "Ver planes"}
+              <ChevronRight className="h-3.5 w-3.5" />
             </Link>
-            {account.isPremium ? (
+            {account.isPremium && (
               <form action={unsubscribeMiunixPlusAction}>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-xs text-red-100 transition hover:bg-red-500/16"
+                  className="inline-flex items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-xs text-red-200 transition hover:bg-red-500/18"
                 >
                   <BadgeX className="h-3.5 w-3.5" />
-                  Desuscribirme de MIUNIX+
+                  Cancelar plan
                 </button>
               </form>
-            ) : null}
+            )}
           </div>
-        </article>
+        </div>
+      </div>
 
-        <article className="rounded-[1.4rem] border border-white/8 bg-white/[0.03] px-5 py-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-white/35">
-                Agentes comprados
-              </p>
-              <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-white">
-                {purchasedAgents.length} activos
-              </h2>
-            </div>
+      {/* Purchased agents */}
+      <Section title="Agentes comprados" description="Agentes del marketplace activos en tu cuenta.">
+        {purchasedAgents.length > 0 ? (
+          <div className="space-y-2">
+            {purchasedAgents.map((agent, i) => (
+              <motion.div
+                key={agent.id}
+                {...stagger(i)}
+                className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 transition hover:bg-white/[0.04]"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#858BE3]/20 bg-[#858BE3]/10 text-[#858BE3]">
+                    <Bot className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-white/85">{agent.name}</p>
+                    <p className="truncate text-xs text-white/35">{agent.slug}</p>
+                  </div>
+                </div>
+                <form action={unsubscribePurchasedAgentAction}>
+                  <input type="hidden" name="agentId" value={agent.id} />
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-400/18 bg-red-500/8 px-3 py-1.5 text-xs text-red-200 transition hover:bg-red-500/14"
+                  >
+                    <BadgeX className="h-3 w-3" />
+                    Desuscribir
+                  </button>
+                </form>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/10 py-12 text-center">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/20">
+              <Bot className="h-5 w-5" />
+            </span>
+            <p className="text-sm text-white/35">No tienes agentes comprados activos.</p>
             <Link
               href="/marketplace"
-              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/65 transition hover:bg-white/8 hover:text-white"
+              className="mt-1 inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/55 transition hover:bg-white/8 hover:text-white/80"
             >
+              Explorar marketplace <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
+      </Section>
+    </motion.div>
+  );
+}
+
+function TabFacturacion({ account }: { account: DashboardAccount }) {
+  return (
+    <motion.div {...fadeUp} className="space-y-8">
+      <Section title="Facturación" description="Resumen de tu plan y estado de suscripción.">
+        <div className="space-y-2">
+          <FieldRow label="Plan actual" value={account.isPremium ? account.premiumPlanName ?? "MIUNIX+" : "Gratuito"} />
+          <FieldRow label="Estado" value={account.isPremium ? "Activo" : "Inactivo"} />
+          <FieldRow label="Miembro desde" value={formatDate(account.premiumSince)} />
+        </div>
+        <div className="pt-2">
+          <Link
+            href="/miunix-plus"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#d7f209]/20 bg-[#d7f209]/8 px-5 py-2.5 text-sm font-semibold text-[#d7f209] transition hover:bg-[#d7f209]/14"
+          >
+            <CreditCard className="h-4 w-4" />
+            {account.isPremium ? "Gestionar suscripción" : "Activar MIUNIX+"}
+          </Link>
+        </div>
+      </Section>
+    </motion.div>
+  );
+}
+
+function TabSeguridad() {
+  return (
+    <motion.div {...fadeUp} className="space-y-8">
+      <Section title="Seguridad" description="Controla el acceso y la autenticación de tu cuenta.">
+        <ComingSoon label="Opciones de seguridad disponibles próximamente." />
+      </Section>
+    </motion.div>
+  );
+}
+
+function TabPreferencias() {
+  return (
+    <motion.div {...fadeUp} className="space-y-8">
+      <Section title="Preferencias" description="Personaliza tu experiencia en Miunix.">
+        <ComingSoon label="Preferencias disponibles próximamente." />
+      </Section>
+    </motion.div>
+  );
+}
+
+// ─── NAV CONFIG ───────────────────────────────────────────────────────────────
+
+const NAV: { id: Tab; label: string; icon: LucideIcon }[] = [
+  { id: "perfil",       label: "Perfil",        icon: User },
+  { id: "agentes",      label: "Mis Agentes",   icon: Bot },
+  { id: "facturacion",  label: "Facturación",   icon: CreditCard },
+  { id: "seguridad",    label: "Seguridad",     icon: KeyRound },
+  { id: "preferencias", label: "Preferencias",  icon: Settings2 },
+];
+
+// ─── Main panel ───────────────────────────────────────────────────────────────
+
+export function AccountPanel({ account, purchasedAgents, flashMessage, flashType }: AccountPanelProps) {
+  const [tab, setTab] = useState<Tab>("perfil");
+
+  const initials = account.profileName
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+
+  return (
+    <div className="flex w-full flex-col gap-0 py-10">
+      {/* Page header */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="mb-8"
+      >
+        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#d7f209]/60">
+          Mi Cuenta
+        </p>
+        <h1 className="mt-1.5 font-heading text-3xl font-semibold tracking-tight text-white">
+          {account.profileName}
+        </h1>
+        <p className="mt-1 text-sm text-white/40">
+          {account.email ?? "Sin correo"} · <span className="capitalize">{account.role}</span>
+        </p>
+      </motion.div>
+
+      {/* Flash message */}
+      <AnimatePresence>
+        {flashMessage && (
+          <motion.div
+            key="flash"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
+              flashType === "error"
+                ? "border-red-400/20 bg-red-500/10 text-red-200"
+                : "border-[#d7f209]/20 bg-[#d7f209]/8 text-[#efffa8]"
+            }`}
+          >
+            {flashMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Body: sidebar + content */}
+      <div className="flex gap-6 lg:gap-8">
+        {/* ── Sidebar ── */}
+        <motion.aside
+          initial={{ opacity: 0, x: -16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          className="hidden w-52 shrink-0 lg:block"
+        >
+          {/* Avatar card */}
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#858BE3] to-[#6366c3] text-sm font-bold text-white shadow-lg shadow-[#858BE3]/20">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-semibold text-white/85">{account.profileName}</p>
+              {account.isPremium && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#d7f209]/70">
+                  <Crown className="h-2.5 w-2.5" /> MIUNIX+
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Nav */}
+          <nav className="space-y-0.5">
+            {NAV.map((item) => (
+              <NavItem
+                key={item.id}
+                {...item}
+                active={tab === item.id}
+                onClick={() => setTab(item.id)}
+              />
+            ))}
+          </nav>
+
+          {/* Bottom link */}
+          <div className="mt-6 border-t border-white/[0.05] pt-4">
+            <Link
+              href="/marketplace"
+              className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/35 transition hover:bg-white/5 hover:text-white/60"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
               Marketplace
             </Link>
           </div>
+        </motion.aside>
 
-          <div className="mt-5 flex flex-col gap-2">
-            {purchasedAgents.length > 0 ? (
-              purchasedAgents.map((agent) => (
-                <div
-                  key={agent.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-black/18 px-3 py-3"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white/85">
-                      {agent.name}
-                    </p>
-                    <p className="mt-1 truncate text-xs text-white/35">
-                      {agent.slug}
-                    </p>
-                  </div>
-                  <form action={unsubscribePurchasedAgentAction}>
-                    <input type="hidden" name="agentId" value={agent.id} />
-                    <button
-                      type="submit"
-                      className="rounded-xl border border-red-400/18 bg-red-500/8 px-3 py-2 text-xs text-red-100 transition hover:bg-red-500/14"
-                    >
-                      Desuscribirme
-                    </button>
-                  </form>
-                </div>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 bg-black/12 px-4 py-5 text-sm text-white/45">
-                No tienes agentes comprados activos.
-              </div>
-            )}
-          </div>
-        </article>
-      </section>
+        {/* ── Mobile tab bar ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="lg:hidden mb-4 flex gap-1 overflow-x-auto rounded-2xl border border-white/[0.06] bg-white/[0.02] p-1"
+        >
+          {NAV.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition ${
+                tab === item.id
+                  ? "bg-[#d7f209]/10 text-[#d7f209]"
+                  : "text-white/40 hover:text-white/70"
+              }`}
+            >
+              <item.icon className="h-3.5 w-3.5" />
+              {item.label}
+            </button>
+          ))}
+        </motion.div>
+
+        {/* ── Main content ── */}
+        <motion.main
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+          className="min-w-0 flex-1"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {tab === "perfil" && <TabPerfil key="perfil" account={account} />}
+            {tab === "agentes" && <TabAgentes key="agentes" purchasedAgents={purchasedAgents} account={account} />}
+            {tab === "facturacion" && <TabFacturacion key="facturacion" account={account} />}
+            {tab === "seguridad" && <TabSeguridad key="seguridad" />}
+            {tab === "preferencias" && <TabPreferencias key="preferencias" />}
+          </AnimatePresence>
+        </motion.main>
+      </div>
     </div>
   );
 }

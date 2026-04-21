@@ -101,11 +101,11 @@ export function HeroSection() {
   return (
     <div
       id="inicio"
-      className="relative flex flex-1 flex-col items-center justify-center gap-14 pb-4 pt-10 sm:pt-16"
+      className="relative flex flex-1 flex-col items-center justify-center gap-10 pb-6 pt-8 sm:gap-14 sm:pt-16"
     >
 
       {/* ── Copy ── */}
-      <div className="relative z-10 flex flex-col items-center gap-8 px-5 text-center sm:px-10">
+      <div className="relative z-10 flex flex-col items-center gap-6 px-4 text-center sm:gap-8 sm:px-10">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, scale: 0.88 }}
@@ -122,7 +122,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.75, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto max-w-4xl text-balance font-heading font-bold text-[2.5rem] leading-[0.95] tracking-[-0.065em] text-white sm:text-[3.8rem] lg:text-[5rem]"
+          className="mx-auto max-w-4xl text-balance font-heading font-bold text-[2rem] leading-[0.95] tracking-[-0.065em] text-white sm:text-[3.2rem] lg:text-[4.5rem]"
         >
           Instala agentes de IA{" "}
           <span className="bg-gradient-to-r from-[#d7f209] via-[#a8e800] to-[#858BE3] bg-clip-text text-transparent">
@@ -136,7 +136,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto max-w-xl text-base leading-7 text-white/58 sm:text-lg sm:leading-8"
+          className="mx-auto max-w-xl text-[0.9rem] leading-7 text-white/58 sm:text-lg sm:leading-8"
         >
           Transforma tu negocio con agentes inteligentes listos para usar.
           Explora, instala y ejecuta en segundos.
@@ -147,22 +147,22 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.38, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-wrap justify-center gap-3"
+          className="flex w-full flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center"
         >
-          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
             <Link
               href="/marketplace"
-              className="group inline-flex items-center gap-2 rounded-full border border-[#d9ff00]/40 bg-[#d9ff00] px-7 py-3.5 text-sm font-semibold text-black shadow-[0_0_28px_rgba(217,255,0,0.35)] transition hover:bg-[#e5ff45] hover:shadow-[0_0_42px_rgba(217,255,0,0.55)]"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#d9ff00]/40 bg-[#d9ff00] px-7 py-3.5 text-sm font-semibold text-black shadow-[0_0_28px_rgba(217,255,0,0.35)] transition hover:bg-[#e5ff45] hover:shadow-[0_0_42px_rgba(217,255,0,0.55)] sm:w-auto"
             >
               Explorar Marketplace
               <MoveUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
             <a
               href="#features"
-              className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/6 px-7 py-3.5 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/12"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/6 px-7 py-3.5 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/12 sm:w-auto"
             >
               Ver beneficios
               <MoveUpRight className="size-4" />
@@ -172,7 +172,7 @@ export function HeroSection() {
       </div>
 
       {/* ── Stats strip ── */}
-      <div className="relative z-10 w-full max-w-5xl px-5 sm:px-8">
+      <div className="relative z-10 w-full max-w-5xl px-4 sm:px-8">
         {/* Divider */}
         <motion.div
           initial={{ scaleX: 0, opacity: 0 }}
@@ -181,7 +181,7 @@ export function HeroSection() {
           className="mb-8 h-px origin-left bg-gradient-to-r from-transparent via-white/12 to-transparent"
         />
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {stats.map((stat, i) => (
             <StatCard key={stat.id} stat={stat} index={i} />
           ))}
@@ -193,7 +193,7 @@ export function HeroSection() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 1.1 }}
-        className="relative z-10 flex w-full items-center justify-between px-5 sm:px-8"
+        className="relative z-10 flex w-full items-center justify-between px-4 sm:px-8"
       >
         <p className="font-heading text-[0.62rem] uppercase tracking-[0.18em] text-[#D7F205]">
           Miunix.{" "}

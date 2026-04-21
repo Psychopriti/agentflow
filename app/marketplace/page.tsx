@@ -37,7 +37,7 @@ export default async function MarketplacePage() {
 
       <main className="relative z-10 flex flex-1 flex-col">
         <section
-          className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col items-center px-5 pb-16 pt-14 sm:px-8 sm:pt-20"
+          className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col items-center px-4 pb-12 pt-10 sm:px-8 sm:pb-16 sm:pt-20"
           aria-label="Catálogo de agentes"
         >
           <MarketplaceHeading />

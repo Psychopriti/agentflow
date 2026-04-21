@@ -77,7 +77,7 @@ export default async function MiCuentaPage({ searchParams }: MiCuentaPageProps) 
   return (
     <div className="flex min-h-screen flex-col bg-[#09090b] text-white">
       <SiteHeader currentPath="/mi-cuenta" />
-      <main className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-1 flex-col px-5 sm:px-8">
+      <main className="relative z-10 mx-auto flex w-full max-w-[1280px] flex-1 flex-col px-4 sm:px-8">
         <AccountPanel
           account={account}
           purchasedAgents={purchasedAgents}

@@ -169,7 +169,7 @@ export function WorkflowsContent({
           </p>
 
           {/* H1 — Title Case, no uppercase, gradient keyword */}
-          <h1 className="mt-3 text-balance font-heading font-bold text-[2.4rem] leading-[1.08] tracking-[-0.05em] text-white sm:text-[4rem]">
+          <h1 className="mt-3 text-balance font-heading font-bold text-[1.9rem] leading-[1.08] tracking-[-0.05em] text-white sm:text-[2.8rem] lg:text-[4rem]">
             Workflows que se adaptan{" "}
             <span className="bg-gradient-to-r from-[#d7f209] via-[#a8e800] to-[#858BE3] bg-clip-text text-transparent">
               a tus necesidades
@@ -177,7 +177,7 @@ export function WorkflowsContent({
           </h1>
 
           {/* Subtitle */}
-          <p className="mx-auto mt-5 max-w-[48rem] text-balance font-sans text-[1.05rem] leading-8 text-zinc-400 sm:text-[1.1rem]">
+          <p className="mx-auto mt-4 max-w-[48rem] text-balance font-sans text-[0.95rem] leading-7 text-zinc-400 sm:mt-5 sm:text-[1.05rem] sm:leading-8">
             Compra paquetes de agentes que trabajan juntos en un flujo estructurado.
             La ejecución vive en tu dashboard, lista en segundos.
           </p>
@@ -188,7 +188,7 @@ export function WorkflowsContent({
             <p className="font-sans text-sm leading-6 text-zinc-400">Todavía no hay workflows publicados. Vuelve pronto.</p>
           </div>
         ) : (
-          <div className="mt-12 grid gap-6 xl:grid-cols-[1.12fr_0.98fr]">
+          <div className="mt-8 grid gap-5 sm:mt-12 xl:grid-cols-[1.12fr_0.98fr]">
             <div className="grid gap-5">
               {workflows.map((workflow, index) => {
                 const isSelected = workflow.slug === selectedWorkflow?.slug;

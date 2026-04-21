@@ -14,7 +14,7 @@ export function MarketplaceHeading() {
         preset="blur"
         delay={0.1}
         speedReveal={1.5}
-        className="font-heading font-bold text-[2.4rem] leading-[1.05] tracking-[-0.05em] text-white sm:text-[3.8rem]"
+        className="font-heading font-bold text-[2rem] leading-[1.05] tracking-[-0.05em] text-white sm:text-[3.2rem] lg:text-[3.8rem]"
       >
         Agentes Destacados
       </TextEffect>

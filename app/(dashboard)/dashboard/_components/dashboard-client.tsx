@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowUpRight,
+  ChevronDown,
   ChevronRight,
   LockKeyhole,
   PencilLine,
@@ -512,6 +513,133 @@ function EmptyState({
   );
 }
 
+// ─── Mobile Agent Dropdown ────────────────────────────────────────────────────
+// Shown only on screens < md. Replaces the sidebar for agent switching.
+
+function AgentDropdown({
+  agents,
+  selectedAgent,
+  selectedConversation,
+  conversations,
+  onSelect,
+}: {
+  agents: DashboardAgent[];
+  selectedAgent: DashboardAgent;
+  selectedConversation: DashboardConversation | null;
+  conversations: DashboardConversation[];
+  onSelect: (slug: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative md:hidden">
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-h-[40px] items-center gap-2 rounded-xl border border-white/12 bg-white/4 px-3 py-2 text-left transition hover:bg-white/8 active:scale-[0.97]"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <div className="scale-75">{getAgentIcon(selectedAgent.slug)}</div>
+        <div className="min-w-0">
+          <p className="max-w-[120px] truncate text-xs font-medium text-white/85 sm:max-w-[180px]">
+            {selectedAgent.name}
+          </p>
+          {selectedConversation && (
+            <p className="max-w-[120px] truncate text-[10px] text-white/35 sm:max-w-[180px]">
+              {formatConversationTitle(selectedConversation.title)}
+            </p>
+          )}
+        </div>
+        <motion.div
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="ml-1 flex-shrink-0"
+        >
+          <ChevronDown className="h-3.5 w-3.5 text-white/40" />
+        </motion.div>
+      </button>
+
+      {/* Dropdown panel */}
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            role="listbox"
+            aria-label="Seleccionar agente"
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 top-[calc(100%+6px)] z-50 flex min-w-[220px] flex-col gap-1 rounded-2xl border border-white/12 bg-[#0f0f0f] p-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.04)]"
+          >
+            {agents.map((agent) => {
+              const isSelected = agent.slug === selectedAgent.slug;
+              const convCount = conversations.filter(
+                (c) => c.agentSlug === agent.slug,
+              ).length;
+
+              return (
+                <motion.li
+                  key={agent.id}
+                  role="option"
+                  aria-selected={isSelected}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelect(agent.slug);
+                      setOpen(false);
+                    }}
+                    className={[
+                      "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition",
+                      isSelected
+                        ? "bg-purple-500/15 text-white"
+                        : "text-white/70 hover:bg-white/6 hover:text-white",
+                    ].join(" ")}
+                  >
+                    <AgentIconWrapper slug={agent.slug} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium leading-tight">
+                        {agent.name}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-white/35">
+                        {convCount} conversación{convCount === 1 ? "" : "es"}
+                      </p>
+                    </div>
+                    {agent.ownerType === "user" && (
+                      <span className="flex-shrink-0 rounded-full bg-[#d9ff00]/10 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.1em] text-[#efffa8]">
+                        Privado
+                      </span>
+                    )}
+                    {isSelected && (
+                      <div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-purple-400" />
+                    )}
+                  </button>
+                </motion.li>
+              );
+            })}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function DashboardClient({
   agents,
   workflows,
@@ -645,14 +773,14 @@ export function DashboardClient({
     let buffer = "";
     let finalPayload:
       | {
-          conversationId?: string;
-          output: string;
-          execution: {
-            id: string;
-            status: "pending" | "completed" | "failed";
-            created_at: string;
-          };
-        }
+        conversationId?: string;
+        output: string;
+        execution: {
+          id: string;
+          status: "pending" | "completed" | "failed";
+          created_at: string;
+        };
+      }
       | undefined;
 
     const processBlock = (block: string) => {
@@ -678,8 +806,8 @@ export function DashboardClient({
           label: String(payload.label ?? "Paso en curso"),
           status:
             payload.status === "completed" ||
-            payload.status === "failed" ||
-            payload.status === "running"
+              payload.status === "failed" ||
+              payload.status === "running"
               ? payload.status
               : "running",
         };
@@ -1005,13 +1133,13 @@ export function DashboardClient({
           .map((conversation) =>
             conversation.id === activeConversation.id
               ? {
-                  ...conversation,
-                  lastMessageAt: payload.execution.created_at,
-                  title:
-                    conversation.title === "Nueva conversacion"
-                      ? text.slice(0, 72)
-                      : conversation.title,
-                }
+                ...conversation,
+                lastMessageAt: payload.execution.created_at,
+                title:
+                  conversation.title === "Nueva conversacion"
+                    ? text.slice(0, 72)
+                    : conversation.title,
+              }
               : conversation,
           )
           .sort(
@@ -1060,11 +1188,10 @@ export function DashboardClient({
           <button
             type="button"
             onClick={() => setActiveMode("agents")}
-            className={`rounded-full px-4 py-2 text-xs uppercase tracking-[0.18em] transition ${
-              activeMode === "agents"
+            className={`rounded-full px-4 py-2 text-xs uppercase tracking-[0.18em] transition ${activeMode === "agents"
                 ? "bg-white/12 text-white"
                 : "bg-white/[0.03] text-white/48 hover:bg-white/[0.06] hover:text-white/72"
-            }`}
+              }`}
           >
             Agentes
           </button>
@@ -1072,11 +1199,10 @@ export function DashboardClient({
             type="button"
             onClick={() => setActiveMode("workflows")}
             disabled={workflows.length === 0}
-            className={`rounded-full px-4 py-2 text-xs uppercase tracking-[0.18em] transition ${
-              activeMode === "workflows"
+            className={`rounded-full px-4 py-2 text-xs uppercase tracking-[0.18em] transition ${activeMode === "workflows"
                 ? "bg-[#d7f205]/12 text-[#f3ffc1]"
                 : "bg-white/[0.03] text-white/48 hover:bg-white/[0.06] hover:text-white/72"
-            } disabled:cursor-not-allowed disabled:opacity-45`}
+              } disabled:cursor-not-allowed disabled:opacity-45`}
           >
             Workflow Mode
           </button>
@@ -1094,320 +1220,331 @@ export function DashboardClient({
           initialWorkflowExecutions={initialWorkflowExecutions}
         />
       ) : (
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden w-[240px] flex-shrink-0 flex-col border-r border-white/6 bg-[#0d0d0d] md:flex">
-          {selectedAgent ? (
-            <div className="border-b border-white/6 p-4">
-              <div className="flex items-center gap-3">
-                <AgentIconWrapper slug={selectedAgent.slug} size="md" />
-                <div className="min-w-0">
-                  <h2 className="text-sm font-semibold leading-tight text-white">
-                    {selectedAgent.name}
-                  </h2>
+        <div className="flex flex-1 overflow-hidden">
+          <aside className="hidden w-[240px] flex-shrink-0 flex-col border-r border-white/6 bg-[#0d0d0d] md:flex">
+            {selectedAgent ? (
+              <div className="border-b border-white/6 p-4">
+                <div className="flex items-center gap-3">
+                  <AgentIconWrapper slug={selectedAgent.slug} size="md" />
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-semibold leading-tight text-white">
+                      {selectedAgent.name}
+                    </h2>
+                  </div>
                 </div>
-              </div>
-              <p className="mt-3 text-[11px] leading-relaxed text-white/45">
-                {selectedAgent.shortDescription}
-              </p>
-            </div>
-          ) : null}
-
-          <div className="flex flex-col gap-2 border-b border-white/6 p-3">
-            <button
-              type="button"
-              onClick={handleNewConversation}
-              disabled={!selectedAgent || isCreatingConversation}
-              className="flex items-center gap-2.5 rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 text-xs text-white/70 transition hover:bg-white/8 hover:text-white"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {isCreatingConversation ? "Creando..." : "Nueva Conversacion"}
-            </button>
-          </div>
-
-          <div className="flex flex-1 flex-col overflow-y-auto p-3">
-            <p className="mb-2 px-1 text-[10px] uppercase tracking-[0.18em] text-white/30">
-              Mis Agentes
-            </p>
-            <div className="flex flex-col gap-1.5">
-              {agents.map((agent, i) => (
-                <motion.div
-                  key={agent.id}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: i * 0.06, ease: "easeOut" }}
-                >
-                  <AgentCard
-                    agent={agent}
-                    isSelected={selectedAgentSlug === agent.slug}
-                    conversationCount={
-                      conversations.filter(
-                        (conversation) => conversation.agentSlug === agent.slug,
-                      ).length
-                    }
-                    onSelect={() => handleSelectAgent(agent.slug)}
-                  />
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="mt-5">
-              <div className="mb-2 flex items-center justify-between gap-2 px-1">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-white/30">
-                  Conversaciones
+                <p className="mt-3 text-[11px] leading-relaxed text-white/45">
+                  {selectedAgent.shortDescription}
                 </p>
-                <span className="text-[10px] text-white/25">
-                  {filteredConversationsForSelectedAgent.length}
+              </div>
+            ) : null}
+
+            <div className="flex flex-col gap-2 border-b border-white/6 p-3">
+              <button
+                type="button"
+                onClick={handleNewConversation}
+                disabled={!selectedAgent || isCreatingConversation}
+                className="flex items-center gap-2.5 rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 text-xs text-white/70 transition hover:bg-white/8 hover:text-white"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {isCreatingConversation ? "Creando..." : "Nueva Conversacion"}
+              </button>
+            </div>
+
+            <div className="flex flex-1 flex-col overflow-y-auto p-3">
+              <p className="mb-2 px-1 text-[10px] uppercase tracking-[0.18em] text-white/30">
+                Mis Agentes
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {agents.map((agent, i) => (
+                  <motion.div
+                    key={agent.id}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.06, ease: "easeOut" }}
+                  >
+                    <AgentCard
+                      agent={agent}
+                      isSelected={selectedAgentSlug === agent.slug}
+                      conversationCount={
+                        conversations.filter(
+                          (conversation) => conversation.agentSlug === agent.slug,
+                        ).length
+                      }
+                      onSelect={() => handleSelectAgent(agent.slug)}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="mt-5">
+                <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-white/30">
+                    Conversaciones
+                  </p>
+                  <span className="text-[10px] text-white/25">
+                    {filteredConversationsForSelectedAgent.length}
+                  </span>
+                </div>
+
+                <div className="mb-3 flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
+                  <Search className="h-3.5 w-3.5 text-white/30" />
+                  <input
+                    value={conversationSearch}
+                    onChange={(event) => setConversationSearch(event.target.value)}
+                    placeholder="Buscar conversaciones"
+                    className="w-full bg-transparent text-xs text-white/75 outline-none placeholder:text-white/25"
+                  />
+                </div>
+
+                {selectedAgent && filteredConversationsForSelectedAgent.length > 0 ? (
+                  <AnimatePresence initial={false}>
+                    <div className="flex flex-col gap-2">
+                      {filteredConversationsForSelectedAgent.map((conversation) => {
+                        const isSelected = selectedConversation?.id === conversation.id;
+                        const isRenaming = renamingConversationId === conversation.id;
+                        const isActing = conversationActionId === conversation.id;
+                        const preview = getConversationPreview(
+                          chatHistory[conversation.id] ?? [],
+                        );
+
+                        return (
+                          <motion.div
+                            key={conversation.id}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.22, ease: "easeOut" }}
+                            className={[
+                              "rounded-2xl border px-3 py-3 transition cursor-pointer",
+                              isSelected
+                                ? "border-purple-500/45 bg-purple-500/10"
+                                : "border-white/8 bg-white/[0.025] hover:border-white/16 hover:bg-white/[0.04]",
+                            ].join(" ")}
+                          >
+                            <div className="flex items-start gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedConversationId(conversation.id)}
+                                className="min-w-0 flex-1 text-left"
+                              >
+                                {isRenaming ? (
+                                  <input
+                                    value={renameValue}
+                                    onChange={(event) => setRenameValue(event.target.value)}
+                                    onBlur={() => void handleRenameConversation(conversation.id)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        void handleRenameConversation(conversation.id);
+                                      }
+
+                                      if (event.key === "Escape") {
+                                        setRenamingConversationId(null);
+                                      }
+                                    }}
+                                    autoFocus
+                                    className="w-full rounded-lg border border-white/12 bg-black/20 px-2 py-1 text-xs text-white outline-none"
+                                  />
+                                ) : (
+                                  <>
+                                    <p className="truncate text-xs font-medium text-white/85">
+                                      {formatConversationTitle(conversation.title)}
+                                    </p>
+                                    <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-white/38">
+                                      {preview}
+                                    </p>
+                                    <p className="mt-2 text-[10px] text-white/28">
+                                      {formatConversationTimestamp(conversation.lastMessageAt)}
+                                    </p>
+                                  </>
+                                )}
+                              </button>
+
+                              {!isRenaming ? (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => startRenamingConversation(conversation)}
+                                    className="rounded-lg p-1.5 text-white/35 transition hover:bg-white/8 hover:text-white/70"
+                                    aria-label="Renombrar conversacion"
+                                  >
+                                    <PencilLine className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => void handleDeleteConversation(conversation.id)}
+                                    disabled={isActing}
+                                    className="rounded-lg p-1.5 text-white/35 transition hover:bg-red-500/10 hover:text-red-200"
+                                    aria-label="Borrar conversacion"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </AnimatePresence>
+                ) : selectedAgent && conversationsForSelectedAgent.length > 0 ? (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-3 py-4 text-center text-xs text-white/40">
+                    No hay conversaciones que coincidan con esa busqueda.
+                  </div>
+                ) : selectedAgent ? (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-3 py-4 text-center text-xs text-white/40">
+                    Todavia no hay conversaciones para este agente.
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="border-t border-white/6 p-3">
+              <Link
+                href="/mi-cuenta"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/8 bg-white/4 text-white/40 transition hover:bg-white/8 hover:text-white/70"
+                aria-label="Abrir mi cuenta"
+              >
+                <Settings className="h-4 w-4" />
+              </Link>
+            </div>
+          </aside>
+
+          <main className="flex flex-1 flex-col overflow-hidden">
+            {selectedAgent ? (
+              <div className="flex items-center justify-between gap-3 border-b border-white/6 px-4 py-3">
+                {/* ── Mobile agent dropdown (hidden on md+) ── */}
+                <AgentDropdown
+                  agents={agents}
+                  selectedAgent={selectedAgent}
+                  selectedConversation={selectedConversation}
+                  conversations={conversations}
+                  onSelect={handleSelectAgent}
+                />
+
+                {/* ── Desktop indicator (hidden below md) ── */}
+                <div className="hidden items-center gap-3 md:flex">
+                  <div className="flex items-center gap-2 rounded-full border border-white/12 bg-white/4 px-3 py-1.5">
+                    <div className="scale-75">{getAgentIcon(selectedAgent.slug)}</div>
+                    <span className="text-xs text-white/70">Agente activo</span>
+                  </div>
+                  <ChevronRight className="h-3.5 w-3.5 text-white/20" />
+                  <div>
+                    <span className="text-sm font-medium text-white/80">
+                      {selectedAgent.name}
+                    </span>
+                    {selectedConversation ? (
+                      <p className="text-xs text-white/35">
+                        {formatConversationTitle(selectedConversation.title)}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+
+                <span className="text-xs text-white/35">
+                  {currentMessages.length} mensajes
                 </span>
               </div>
+            ) : null}
 
-              <div className="mb-3 flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">
-                <Search className="h-3.5 w-3.5 text-white/30" />
-                <input
-                  value={conversationSearch}
-                  onChange={(event) => setConversationSearch(event.target.value)}
-                  placeholder="Buscar conversaciones"
-                  className="w-full bg-transparent text-xs text-white/75 outline-none placeholder:text-white/25"
-                />
-              </div>
-
-              {selectedAgent && filteredConversationsForSelectedAgent.length > 0 ? (
-                <AnimatePresence initial={false}>
-                  <div className="flex flex-col gap-2">
-                  {filteredConversationsForSelectedAgent.map((conversation) => {
-                    const isSelected = selectedConversation?.id === conversation.id;
-                    const isRenaming = renamingConversationId === conversation.id;
-                    const isActing = conversationActionId === conversation.id;
-                    const preview = getConversationPreview(
-                      chatHistory[conversation.id] ?? [],
-                    );
-
-                    return (
-                      <motion.div
-                        key={conversation.id}
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.22, ease: "easeOut" }}
-                        className={[
-                          "rounded-2xl border px-3 py-3 transition cursor-pointer",
-                          isSelected
-                            ? "border-purple-500/45 bg-purple-500/10"
-                            : "border-white/8 bg-white/[0.025] hover:border-white/16 hover:bg-white/[0.04]",
-                        ].join(" ")}
-                      >
-                        <div className="flex items-start gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedConversationId(conversation.id)}
-                            className="min-w-0 flex-1 text-left"
-                          >
-                            {isRenaming ? (
-                              <input
-                                value={renameValue}
-                                onChange={(event) => setRenameValue(event.target.value)}
-                                onBlur={() => void handleRenameConversation(conversation.id)}
-                                onKeyDown={(event) => {
-                                  if (event.key === "Enter") {
-                                    event.preventDefault();
-                                    void handleRenameConversation(conversation.id);
-                                  }
-
-                                  if (event.key === "Escape") {
-                                    setRenamingConversationId(null);
-                                  }
-                                }}
-                                autoFocus
-                                className="w-full rounded-lg border border-white/12 bg-black/20 px-2 py-1 text-xs text-white outline-none"
-                              />
-                            ) : (
-                              <>
-                                <p className="truncate text-xs font-medium text-white/85">
-                                  {formatConversationTitle(conversation.title)}
-                                </p>
-                                <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-white/38">
-                                  {preview}
-                                </p>
-                                <p className="mt-2 text-[10px] text-white/28">
-                                  {formatConversationTimestamp(conversation.lastMessageAt)}
-                                </p>
-                              </>
-                            )}
-                          </button>
-
-                          {!isRenaming ? (
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => startRenamingConversation(conversation)}
-                                className="rounded-lg p-1.5 text-white/35 transition hover:bg-white/8 hover:text-white/70"
-                                aria-label="Renombrar conversacion"
-                              >
-                                <PencilLine className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => void handleDeleteConversation(conversation.id)}
-                                disabled={isActing}
-                                className="rounded-lg p-1.5 text-white/35 transition hover:bg-red-500/10 hover:text-red-200"
-                                aria-label="Borrar conversacion"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                  </div>
-                </AnimatePresence>
-              ) : selectedAgent && conversationsForSelectedAgent.length > 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-3 py-4 text-center text-xs text-white/40">
-                  No hay conversaciones que coincidan con esa busqueda.
-                </div>
-              ) : selectedAgent ? (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-3 py-4 text-center text-xs text-white/40">
-                  Todavia no hay conversaciones para este agente.
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="border-t border-white/6 p-3">
-            <Link
-              href="/mi-cuenta"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/8 bg-white/4 text-white/40 transition hover:bg-white/8 hover:text-white/70"
-              aria-label="Abrir mi cuenta"
-            >
-              <Settings className="h-4 w-4" />
-            </Link>
-          </div>
-        </aside>
-
-        <main className="flex flex-1 flex-col overflow-hidden">
-          {selectedAgent ? (
-            <div className="flex items-center justify-between gap-3 border-b border-white/6 px-5 py-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 rounded-full border border-white/12 bg-white/4 px-3 py-1.5">
-                  <div className="scale-75">{getAgentIcon(selectedAgent.slug)}</div>
-                  <span className="text-xs text-white/70">Agente activo</span>
-                </div>
-                <ChevronRight className="h-3.5 w-3.5 text-white/20" />
-                <div>
-                  <span className="text-sm font-medium text-white/80">
-                    {selectedAgent.name}
-                  </span>
-                  {selectedConversation ? (
-                    <p className="text-xs text-white/35">
-                      {formatConversationTitle(selectedConversation.title)}
-                    </p>
-                  ) : null}
+            {errorMessage ? (
+              <div className="border-b border-red-500/15 bg-red-500/8 px-5 py-3 text-sm text-red-100">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errorMessage}</span>
                 </div>
               </div>
-              <span className="text-xs text-white/35">
-                {currentMessages.length} mensajes
-              </span>
-            </div>
-          ) : null}
+            ) : null}
 
-          {errorMessage ? (
-            <div className="border-b border-red-500/15 bg-red-500/8 px-5 py-3 text-sm text-red-100">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errorMessage}</span>
-              </div>
-            </div>
-          ) : null}
+            <div className="relative flex-1 overflow-y-auto">
+              <div
+                className="pointer-events-none absolute bottom-0 right-[10%] h-[45%] w-[35%] rounded-full opacity-30"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(163,230,53,0.18) 0%, transparent 70%)",
+                }}
+              />
 
-          <div className="relative flex-1 overflow-y-auto">
-            <div
-              className="pointer-events-none absolute bottom-0 right-[10%] h-[45%] w-[35%] rounded-full opacity-30"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(163,230,53,0.18) 0%, transparent 70%)",
-              }}
-            />
-
-            {selectedAgent && currentMessages.length === 0 ? (
-              <EmptyState agent={selectedAgent} onTopicClick={handleTopicClick} />
-            ) : (
-              <div className="flex flex-col gap-4 px-5 py-6">
-                {selectedAgent
-                  ? currentMessages.map((message) => (
+              {selectedAgent && currentMessages.length === 0 ? (
+                <EmptyState agent={selectedAgent} onTopicClick={handleTopicClick} />
+              ) : (
+                <div className="flex flex-col gap-4 px-5 py-6">
+                  {selectedAgent
+                    ? currentMessages.map((message) => (
                       <MessageBubble
                         key={message.id}
                         message={message}
                         agentSlug={selectedAgent.slug}
                       />
                     ))
-                  : null}
+                    : null}
 
-                {isSending && selectedAgent ? (
-                  <div className="flex gap-3">
-                    <div className="mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-purple-500/30 bg-gradient-to-br from-purple-900/40 to-blue-900/30">
-                      <div className="scale-50">{getAgentIcon(selectedAgent.slug)}</div>
+                  {isSending && selectedAgent ? (
+                    <div className="flex gap-3">
+                      <div className="mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-purple-500/30 bg-gradient-to-br from-purple-900/40 to-blue-900/30">
+                        <div className="scale-50">{getAgentIcon(selectedAgent.slug)}</div>
+                      </div>
+                      <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-white/8 bg-white/5 px-4 py-3">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/40 [animation-delay:0ms]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/40 [animation-delay:150ms]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/40 [animation-delay:300ms]" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-white/8 bg-white/5 px-4 py-3">
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/40 [animation-delay:0ms]" />
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/40 [animation-delay:150ms]" />
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white/40 [animation-delay:300ms]" />
-                    </div>
-                  </div>
-                ) : null}
+                  ) : null}
 
-                <div ref={chatEndRef} />
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-white/6 p-4">
-            <div className="relative flex items-end gap-3 rounded-2xl border border-white/12 bg-[#141414] px-4 py-3 transition focus-within:border-white/20 focus-within:bg-[#161616]">
-              <textarea
-                id="agent-input"
-                value={inputValue}
-                onChange={(event) => setInputValue(event.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  selectedAgent
-                    ? `Describe la tarea para ${selectedAgent.name}...`
-                    : "No hay agentes disponibles"
-                }
-                disabled={!selectedAgent || isSending}
-                rows={1}
-                className="flex-1 resize-none bg-transparent text-sm text-white/80 placeholder:text-white/25 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ maxHeight: "120px" }}
-                onInput={(event) => {
-                  const target = event.target as HTMLTextAreaElement;
-                  target.style.height = "auto";
-                  target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
-                }}
-              />
-
-              <motion.button
-                type="button"
-                onClick={() => void handleSend()}
-                disabled={!inputValue.trim() || isSending || !selectedAgent}
-                whileHover={inputValue.trim() && !isSending && selectedAgent ? { scale: 1.1 } : {}}
-                whileTap={inputValue.trim() && !isSending && selectedAgent ? { scale: 0.88 } : {}}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className={[
-                  "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-150",
-                  inputValue.trim() && !isSending && selectedAgent
-                    ? "bg-[#d9ff00] text-[#0A0A0A] shadow-[0_0_12px_rgba(217,255,0,0.3)] hover:bg-[#e8ff33]"
-                    : "cursor-not-allowed bg-white/6 text-white/25",
-                ].join(" ")}
-                aria-label="Enviar mensaje"
-              >
-                <Send className="h-3.5 w-3.5" />
-              </motion.button>
+                  <div ref={chatEndRef} />
+                </div>
+              )}
             </div>
 
-            <p className="mt-2 text-center text-[10px] text-white/20">
-              Enter para enviar · Shift + Enter para nueva linea
-            </p>
-          </div>
-        </main>
-      </div>
+            <div className="border-t border-white/6 p-4">
+              <div className="relative flex items-end gap-3 rounded-2xl border border-white/12 bg-[#141414] px-4 py-3 transition focus-within:border-white/20 focus-within:bg-[#161616]">
+                <textarea
+                  id="agent-input"
+                  value={inputValue}
+                  onChange={(event) => setInputValue(event.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={
+                    selectedAgent
+                      ? `Describe la tarea para ${selectedAgent.name}...`
+                      : "No hay agentes disponibles"
+                  }
+                  disabled={!selectedAgent || isSending}
+                  rows={1}
+                  className="flex-1 resize-none bg-transparent text-sm text-white/80 placeholder:text-white/25 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ maxHeight: "120px" }}
+                  onInput={(event) => {
+                    const target = event.target as HTMLTextAreaElement;
+                    target.style.height = "auto";
+                    target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
+                  }}
+                />
+
+                <motion.button
+                  type="button"
+                  onClick={() => void handleSend()}
+                  disabled={!inputValue.trim() || isSending || !selectedAgent}
+                  whileHover={inputValue.trim() && !isSending && selectedAgent ? { scale: 1.1 } : {}}
+                  whileTap={inputValue.trim() && !isSending && selectedAgent ? { scale: 0.88 } : {}}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className={[
+                    "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-150",
+                    inputValue.trim() && !isSending && selectedAgent
+                      ? "bg-[#d9ff00] text-[#0A0A0A] shadow-[0_0_12px_rgba(217,255,0,0.3)] hover:bg-[#e8ff33]"
+                      : "cursor-not-allowed bg-white/6 text-white/25",
+                  ].join(" ")}
+                  aria-label="Enviar mensaje"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </motion.button>
+              </div>
+
+              <p className="mt-2 text-center text-[10px] text-white/20">
+                Enter para enviar · Shift + Enter para nueva linea
+              </p>
+            </div>
+          </main>
+        </div>
       )}
     </div>
   );
@@ -1439,11 +1576,10 @@ function DashboardHeader({ userEmail }: { userEmail?: string | null }) {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`rounded-full px-3 py-1.5 text-[0.68rem] transition ${
-                  item.href === "/dashboard"
+                className={`rounded-full px-3 py-1.5 text-[0.68rem] transition ${item.href === "/dashboard"
                     ? "bg-white/10 text-[#d7f205]"
                     : "text-white/80 hover:bg-white/8 hover:text-white"
-                }`}
+                  }`}
               >
                 {item.label}
               </Link>
