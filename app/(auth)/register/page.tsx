@@ -11,6 +11,12 @@ type RegisterPageProps = {
   }>;
 };
 
+// ── Shared field classes (contrast-compliant) ─────────────────────────────────
+const LABEL_CLS =
+  "mb-1.5 block font-sans text-xs font-medium uppercase tracking-[0.2em] text-zinc-400";
+const INPUT_CLS =
+  "w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 font-sans text-sm text-zinc-50 outline-none transition-all duration-200 placeholder:text-zinc-600 focus:border-[#858BE3] focus:ring-2 focus:ring-[#858BE3]/20 hover:border-zinc-600";
+
 export default async function RegisterPage({
   searchParams,
 }: RegisterPageProps) {
@@ -25,82 +31,90 @@ export default async function RegisterPage({
   return (
     <AuthShell
       currentPage="register"
-      eyebrow="Registro"
-      title="Crea usuarios reales para developers o users"
-      description="El registro crea la cuenta en Supabase Auth, guarda el perfil en la base de datos y deja el rol listo para usar permisos despues."
+      eyebrow="Cuenta nueva"
+      title="Crea tu cuenta y activa tu primer agente"
+      description="Regístrate con tu nombre, correo y contraseña. En minutos tendrás acceso al marketplace y tus primeros agentes listos."
       message={params?.message}
     >
-      <form action={signUpAction} className="mt-5 space-y-4">
+      <form action={signUpAction} className="mt-6 space-y-5">
+
         <label className="block">
-          <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-white/46">
-            Nombre completo
-          </span>
+          <span className={LABEL_CLS}>Nombre completo</span>
           <input
             required
             type="text"
             name="fullName"
-            className="w-full rounded-[1rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#8f90ff]"
+            autoComplete="name"
+            className={INPUT_CLS}
             placeholder="Tu nombre"
           />
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-white/46">
-            Email
-          </span>
+          <span className={LABEL_CLS}>Correo electrónico</span>
           <input
             required
             type="email"
             name="email"
-            className="w-full rounded-[1rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#8f90ff]"
+            autoComplete="email"
+            className={INPUT_CLS}
             placeholder="tu@correo.com"
           />
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-white/46">
-            Tipo de cuenta
-          </span>
+          <span className={LABEL_CLS}>Tipo de cuenta</span>
           <select
             name="role"
             defaultValue="user"
-            className="w-full rounded-[1rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-[#8f90ff]"
+            className={`${INPUT_CLS} cursor-pointer`}
           >
-            <option value="user" className="bg-[#0d0d0d] text-white">
-              User
+            <option value="user" className="bg-zinc-900 text-zinc-50">
+              Usuario — accede al marketplace
             </option>
-            <option value="developer" className="bg-[#0d0d0d] text-white">
-              Developer
+            <option value="developer" className="bg-zinc-900 text-zinc-50">
+              Developer — publica tus propios agentes
             </option>
           </select>
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-xs uppercase tracking-[0.22em] text-white/46">
-            Password
-          </span>
+          <span className={LABEL_CLS}>Contraseña</span>
           <input
             required
             minLength={6}
             type="password"
             name="password"
-            className="w-full rounded-[1rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/28 focus:border-[#8f90ff]"
-            placeholder="Minimo 6 caracteres"
+            autoComplete="new-password"
+            className={INPUT_CLS}
+            placeholder="Mínimo 6 caracteres"
           />
         </label>
 
+        {/* CTA: neon bg, zinc-950 text → contrast ~14:1 ✅ */}
         <button
           type="submit"
-          className="w-full rounded-full border border-[#d9ff00]/30 bg-[#d9ff00] px-5 py-3 text-sm font-medium text-black transition hover:bg-[#e5ff45]"
+          className="
+            mt-2 w-full rounded-full
+            bg-[#d7f209] px-5 py-3
+            font-sans text-sm font-semibold text-[#09090b]
+            transition-all duration-200
+            hover:bg-[#e5ff3a] hover:shadow-[0_0_24px_rgba(215,242,9,0.4)]
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d7f209]/60
+            disabled:opacity-50
+          "
         >
           Crear cuenta
         </button>
       </form>
 
-      <p className="mt-5 text-sm text-white/60">
-        Ya tienes cuenta?{" "}
-        <Link href="/login" className="text-[#8f90ff] hover:text-[#b2b2ff]">
-          Inicia sesion aqui
+      <p className="mt-6 font-sans text-sm text-zinc-400">
+        ¿Ya tienes cuenta?{" "}
+        <Link
+          href="/login"
+          className="font-medium text-[#858BE3] transition-colors hover:text-[#a8abf0] focus-visible:underline"
+        >
+          Inicia sesión aquí
         </Link>
       </p>
     </AuthShell>

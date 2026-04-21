@@ -1,12 +1,23 @@
 import type { Metadata } from "next";
-import { Anton } from "next/font/google";
+import { Space_Grotesk, Roboto } from "next/font/google";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
 
-const anton = Anton({
-  weight: "400",
+// ── Display / Heading font ────────────────────────────────────────────────────
+// Space Grotesk: variable font — covers all weights 300-700 in one request
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-heading",
+  display: "swap",
+});
+
+// ── Body font ─────────────────────────────────────────────────────────────────
+// Roboto: not variable — must enumerate each weight explicitly
+const roboto = Roboto({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -30,11 +41,11 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       data-scroll-behavior="smooth"
-      className={`h-full font-sans antialiased ${anton.variable}`}
+      className={`h-full antialiased ${spaceGrotesk.variable} ${roboto.variable}`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col font-sans">{children}</body>
     </html>
   );
 }

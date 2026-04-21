@@ -2,70 +2,75 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, Star } from "lucide-react";
+import {
+  TrendingUp,
+  PenTool,
+  Search,
+  Code2,
+  Star,
+} from "lucide-react";
 import { motion } from "motion/react";
-
 import { Button } from "@/components/ui/button";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Variant = "lead-generation" | "marketing-content" | "research" | "developer";
 
 type MarketplaceCardProps = {
   title: string;
   description: string;
   ownerLabel: string;
-  variant: "lead-generation" | "marketing-content" | "research" | "developer";
+  variant: Variant;
   href: string;
   averageRating: number;
   totalReviews: number;
 };
 
-/**
- * Colores del gradiente animado por variante (c1 = bottom, c2 = top).
- * El keyframe card-border-shift mueve el background-position de arriba a abajo,
- * lo que hace que el gradiente parezca "fluir".
- */
-const variantGradient: Record<
-  MarketplaceCardProps["variant"],
-  { c1: string; c2: string }
+// ─── Variant config ───────────────────────────────────────────────────────────
+// Each variant defines: the Lucide icon, a glow gradient pair (same technique
+// as DeveloperMarketplaceCard), and a label shown as a small tag.
+
+const variantConfig: Record<
+  Variant,
+  {
+    Icon: React.ElementType;
+    avatarGradient: string;      // CSS gradient for the icon circle
+    glowC1: string;
+    glowC2: string;
+    tag: string;
+  }
 > = {
-  "lead-generation": { c1: "#00e5ff", c2: "#0044ff" },
-  "marketing-content": { c1: "#d9ff00", c2: "#00cc88" },
-  research: { c1: "#00ffcc", c2: "#ff2255" },
-  developer: { c1: "#8f90ff", c2: "#d9ff00" },
+  "lead-generation": {
+    Icon: TrendingUp,
+    avatarGradient: "linear-gradient(180deg,#d7f209 0%,#6b8510 100%)",
+    glowC1: "#d7f209",
+    glowC2: "#00cc88",
+    tag: "Generación de Leads",
+  },
+  "marketing-content": {
+    Icon: PenTool,
+    avatarGradient: "linear-gradient(180deg,#858BE3 0%,#4c4fa9 100%)",
+    glowC1: "#858BE3",
+    glowC2: "#d7f209",
+    tag: "Contenido & Marketing",
+  },
+  research: {
+    Icon: Search,
+    avatarGradient: "linear-gradient(180deg,#67e8f9 0%,#0891b2 100%)",
+    glowC1: "#67e8f9",
+    glowC2: "#858BE3",
+    tag: "Research & Análisis",
+  },
+  developer: {
+    Icon: Code2,
+    avatarGradient: "linear-gradient(180deg,#858BE3 0%,#4c4fa9 100%)",
+    glowC1: "#858BE3",
+    glowC2: "#00e5ff",
+    tag: "Desarrollo",
+  },
 };
 
-function MarketplaceCardIcon({
-  variant,
-}: {
-  variant: MarketplaceCardProps["variant"];
-}) {
-  if (variant === "lead-generation") {
-    return (
-      <div className="relative h-10 w-10">
-        <div className="absolute left-0 top-1 h-8 w-4 bg-[linear-gradient(180deg,#3bc7dd,#173580)]" />
-        <div className="absolute left-4 top-3 h-5 w-5 border border-white/60 bg-transparent" />
-        <div className="absolute left-1 top-5 h-2 w-8 bg-[linear-gradient(90deg,#072b30,#6ee0bf)]" />
-      </div>
-    );
-  }
-  if (variant === "marketing-content") {
-    return (
-      <div className="relative h-10 w-10">
-        <div className="absolute inset-x-1 top-1 h-4 rotate-[1deg] bg-[linear-gradient(180deg,#f3dd8c,#689a84)] [clip-path:polygon(50%_0%,100%_52%,50%_100%,0%_52%)]" />
-        <div className="absolute inset-x-1 top-4 h-4 bg-[linear-gradient(180deg,#24494b,#7dd5b2)] [clip-path:polygon(50%_0%,100%_52%,50%_100%,0%_52%)] opacity-90" />
-        <div className="absolute inset-x-2 top-7 h-2 border border-white/50 [clip-path:polygon(50%_0%,100%_52%,50%_100%,0%_52%)]" />
-      </div>
-    );
-  }
-  if (variant === "research") {
-    return (
-      <div className="relative h-10 w-10">
-        <div className="absolute left-2 top-0 h-6 w-6 rotate-45 border border-white/80" />
-        <div className="absolute bottom-1 left-0 h-4 w-5 bg-[#f04e37]" />
-        <div className="absolute bottom-1 right-0 h-4 w-5 bg-[linear-gradient(90deg,#0f6d63,#1fd7bd)]" />
-      </div>
-    );
-  }
-  return <Sparkles className="size-5 text-[#d9ff00]" />;
-}
+// ─── Card ─────────────────────────────────────────────────────────────────────
 
 export function MarketplaceCard({
   title,
@@ -77,25 +82,19 @@ export function MarketplaceCard({
   totalReviews,
 }: MarketplaceCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const { c1, c2 } = variantGradient[variant];
+  const { Icon, avatarGradient, glowC1, glowC2, tag } = variantConfig[variant];
 
-  // Estilo compartido: gradiente que se anima (replica el ::before/::after del CodePen)
+  // Animated border / halo gradient — identical technique to DeveloperMarketplaceCard
   const gradientStyle: React.CSSProperties = {
-    backgroundImage: `linear-gradient(0deg, ${c1}, ${c2})`,
+    backgroundImage: `linear-gradient(0deg, ${glowC1}, ${glowC2})`,
     backgroundSize: "100% 200%",
     backgroundPosition: "center center",
     animation: "card-border-shift 3s ease infinite alternate",
   };
 
   return (
-    /**
-     * El wrapper actúa como el .card del CodePen.
-     * Los dos divs dentro son los ::before y ::after — el segundo tiene blur enorme.
-     * La motion.article tiene bg propio que cubre el centro, dejando solo
-     * los 3px del borde visibles con el gradiente de color.
-     */
     <div className="relative">
-      {/* ── ::before — borde de gradiente fino (3px alrededor de la card) ── */}
+      {/* Animated gradient border (3 px) — appears on hover */}
       <div
         aria-hidden
         className="pointer-events-none absolute -inset-[3px] rounded-[2rem]"
@@ -106,8 +105,7 @@ export function MarketplaceCard({
         }}
       />
 
-      {/* ── ::after — mismo gradiente pero con blur ENORME (125-150px).
-               Esto es lo que crea el gran halo que se funde con el fondo negro. ── */}
+      {/* Large blurred halo — same glow aura as developer cards */}
       <div
         aria-hidden
         className="pointer-events-none absolute -inset-[3px] rounded-[2rem]"
@@ -119,44 +117,62 @@ export function MarketplaceCard({
         }}
       />
 
-      {/* ── Card principal (equivalente al .content del CodePen) ── */}
+      {/* ── Main card body — same visual as DeveloperMarketplaceCard ── */}
       <motion.article
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
         whileHover={{ y: -8, scale: 1.02 }}
         transition={{ type: "spring", stiffness: 320, damping: 26 }}
-        className="relative flex min-h-[26rem] flex-col items-center rounded-[calc(2rem-3px)] border border-white/10 bg-[linear-gradient(180deg,#8b8b90_0%,#5b5b72_62%,#43436d_100%)] px-6 pb-7 pt-8 text-center shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
+        className="
+          relative flex min-h-[26rem] flex-col items-center
+          rounded-[calc(2rem-3px)]
+          border border-white/10
+          bg-[linear-gradient(180deg,#8b8b90_0%,#5b5b72_62%,#43436d_100%)]
+          px-6 pb-7 pt-8 text-center
+          shadow-[0_24px_60px_rgba(0,0,0,0.35)]
+        "
       >
-        {/* Icono con leve escala en hover */}
+        {/* ── Icon circle (avatar equivalent) ── */}
         <motion.div
-          animate={isHovered ? { scale: 1.12 } : { scale: 1 }}
+          animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
           transition={{ type: "spring", stiffness: 320, damping: 22 }}
-          className="flex size-[4.6rem] items-center justify-center rounded-full bg-[#08282c] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]"
+          className="flex size-[4.6rem] items-center justify-center rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
+          style={{ background: avatarGradient }}
         >
-          <MarketplaceCardIcon variant={variant} />
+          <Icon className="size-6 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]" strokeWidth={1.8} />
         </motion.div>
 
-        <h2 className="mt-6 text-balance text-[2rem] font-medium leading-[0.92] tracking-[-0.05em] text-white">
+        {/* ── Title ── */}
+        <h2 className="mt-6 text-balance font-heading font-semibold text-[1.6rem] leading-[1.05] tracking-[-0.04em] text-white">
           {title}
         </h2>
 
-        <p className="mt-5 max-w-[14rem] text-[0.7rem] leading-[1.55] text-white/88">
+        {/* ── Category tag ── */}
+        <p className="mt-2 font-sans text-[0.65rem] font-medium uppercase tracking-[0.2em] text-white/55">
+          {tag}
+        </p>
+
+        {/* ── Description ── */}
+        <p className="mt-4 max-w-[14rem] font-sans text-[0.72rem] leading-[1.6] text-white/80">
           {description}
         </p>
 
-        <p className="mt-3 text-[0.72rem] uppercase tracking-[0.18em] text-white/58">
-          by {ownerLabel}
-        </p>
-
-        <div className="mt-5 flex items-center gap-2 rounded-full border border-white/10 bg-black/15 px-3 py-1.5 text-xs text-white/78">
-          <Star className="size-3.5 fill-[#d9ff00] text-[#d9ff00]" />
-          <span>
-            {totalReviews > 0
-              ? `${averageRating.toFixed(1)} · ${totalReviews} review${totalReviews === 1 ? "" : "s"}`
-              : "Sin reviews"}
-          </span>
+        {/* ── Owner + Rating ── */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+          <p className="font-sans text-[0.68rem] uppercase tracking-[0.16em] text-white/50">
+            by {ownerLabel}
+          </p>
+          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-black/20 px-2.5 py-1 font-sans text-[0.65rem] text-white/75">
+            <Star className="size-3 fill-[#d7f209] text-[#d7f209]" strokeWidth={0} />
+            <span>
+              {totalReviews > 0
+                ? `${averageRating.toFixed(1)} · ${totalReviews}`
+                : "Nuevo"}
+            </span>
+          </div>
         </div>
 
+        {/* ── CTA ── */}
         <motion.div
           className="mt-auto w-full"
           whileHover={{ scale: 1.03 }}
@@ -164,9 +180,19 @@ export function MarketplaceCard({
         >
           <Button
             asChild
-            className="h-auto w-full rounded-full border border-white/10 bg-white/20 px-5 py-3 text-[0.68rem] font-medium text-white backdrop-blur hover:bg-white/28"
+            className="
+              h-auto w-full rounded-full
+              border border-white/10 bg-white/20
+              px-5 py-3
+              font-sans text-[0.72rem] font-semibold text-white
+              backdrop-blur
+              transition-all duration-200
+              hover:bg-white/30 hover:shadow-[0_0_18px_rgba(255,255,255,0.15)]
+              focus-visible:ring-2 focus-visible:ring-white/40
+              disabled:opacity-50
+            "
           >
-            <Link href={href}>Try for Free</Link>
+            <Link href={href}>Activar Agente</Link>
           </Button>
         </motion.div>
       </motion.article>
