@@ -1,18 +1,31 @@
 import { HeroSection } from "@/app/_components/hero-section";
 import { FeaturesSection } from "@/app/_components/features-section";
+import { PageGradient } from "@/app/_components/page-gradient";
 import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 export default function Home() {
   return (
-    <main className="bg-[#050505] text-white">
-      <section className="mx-auto w-full max-w-[1280px] px-5 py-5 sm:px-8 sm:py-7">
-        <div className="flex min-h-screen flex-col rounded-[2rem] border border-white/8 bg-[#080808] px-5 py-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:px-8 sm:py-7 lg:px-10 lg:py-8">
-          <SiteHeader currentPath="/" />
+    <div className="relative flex min-h-screen flex-col bg-[#09090b] text-white">
+      {/* Full-page cursor-reactive gradient — fixed behind everything */}
+      <PageGradient />
+
+      {/* Sticky global header */}
+      <SiteHeader currentPath="/" />
+
+      {/* Main content */}
+      <main className="relative z-10 flex flex-1 flex-col">
+        {/* Hero */}
+        <div className="mx-auto w-full max-w-[1280px] px-5 sm:px-8">
           <HeroSection />
         </div>
-      </section>
 
-      <FeaturesSection />
-    </main>
+        {/* Features — gradient shows through */}
+        <FeaturesSection />
+      </main>
+
+      {/* Public footer */}
+      <SiteFooter />
+    </div>
   );
 }

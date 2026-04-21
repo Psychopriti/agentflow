@@ -3,19 +3,17 @@
 import { motion } from "motion/react";
 import { ShoppingBag, Zap, Play, Sparkles } from "lucide-react";
 
-// ─── Feature data ────────────────────────────────────────────────────────────
+// ─── Feature data ─────────────────────────────────────────────────────────────
 
 const features = [
   {
     id: "marketplace",
     icon: ShoppingBag,
     title: "Marketplace de Agentes",
-    description:
-      "Explora y elige entre docenas de agentes listos para usar.",
-    // accent colours (icon bg, glow, border tint)
+    description: "Explora y elige entre docenas de agentes listos para usar.",
     iconBg: "rgba(143, 144, 255, 0.15)",
     iconColor: "#8f90ff",
-    glowColor: "rgba(143, 144, 255, 0.18)",
+    glowColor: "rgba(143, 144, 255, 0.20)",
     borderHover: "rgba(143, 144, 255, 0.35)",
   },
   {
@@ -25,7 +23,7 @@ const features = [
     description: "Agrega cualquier agente a tu cuenta en segundos.",
     iconBg: "rgba(217, 255, 0, 0.12)",
     iconColor: "#d9ff00",
-    glowColor: "rgba(217, 255, 0, 0.14)",
+    glowColor: "rgba(217, 255, 0, 0.16)",
     borderHover: "rgba(217, 255, 0, 0.30)",
   },
   {
@@ -35,7 +33,7 @@ const features = [
     description: "Obtén resultados en minutos sin complicaciones.",
     iconBg: "rgba(143, 144, 255, 0.15)",
     iconColor: "#8f90ff",
-    glowColor: "rgba(143, 144, 255, 0.18)",
+    glowColor: "rgba(143, 144, 255, 0.20)",
     borderHover: "rgba(143, 144, 255, 0.35)",
   },
   {
@@ -45,12 +43,23 @@ const features = [
     description: "Todo funciona con lenguaje natural, sin programar.",
     iconBg: "rgba(217, 255, 0, 0.12)",
     iconColor: "#d9ff00",
-    glowColor: "rgba(217, 255, 0, 0.14)",
+    glowColor: "rgba(217, 255, 0, 0.16)",
     borderHover: "rgba(217, 255, 0, 0.30)",
   },
 ] as const;
 
-// ─── Single card ─────────────────────────────────────────────────────────────
+// ─── Shared animation variants ────────────────────────────────────────────────
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 22 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] as const },
+  }),
+};
+
+// ─── Feature card ─────────────────────────────────────────────────────────────
 
 function FeatureCard({
   feature,
@@ -64,17 +73,14 @@ function FeatureCard({
   return (
     <motion.article
       id={`feature-${feature.id}`}
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{
-        duration: 0.55,
-        delay: index * 0.12,
-        ease: [0.22, 1, 0.36, 1],
-      }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      custom={index * 0.1}
+      variants={fadeUp}
       whileHover={{
         y: -8,
-        transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+        transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
       }}
       style={
         {
@@ -82,9 +88,9 @@ function FeatureCard({
           "--border-hover": feature.borderHover,
         } as React.CSSProperties
       }
-      className="feature-card group relative flex flex-col gap-5 rounded-[1.4rem] border border-white/8 bg-[#0c0c0c] p-7 transition-shadow duration-300 hover:shadow-[0_20px_60px_var(--glow)]"
+      className="feature-card group relative flex flex-col gap-5 rounded-2xl border border-white/8 bg-zinc-900/50 p-7 backdrop-blur-sm transition-all duration-200 hover:shadow-[0_20px_60px_var(--glow)]"
     >
-      {/* subtle top-edge gradient line */}
+      {/* top-edge gradient shimmer */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-[1.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{
@@ -92,7 +98,6 @@ function FeatureCard({
         }}
       />
 
-      {/* Icon container */}
       <motion.div
         whileHover={{ scale: 1.08, rotate: 4 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
@@ -106,17 +111,15 @@ function FeatureCard({
         />
       </motion.div>
 
-      {/* Text */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-[1.05rem] font-semibold leading-snug tracking-[-0.02em] text-white">
+        <h3 className="font-heading font-semibold text-[1rem] leading-snug tracking-[-0.025em] text-zinc-50">
           {feature.title}
         </h3>
-        <p className="text-[0.85rem] leading-[1.65] text-[#7a7a72] line-clamp-2">
+        <p className="line-clamp-2 font-sans text-[0.85rem] leading-[1.65] text-zinc-400">
           {feature.description}
         </p>
       </div>
 
-      {/* Bottom accent bar */}
       <div
         className="mt-auto h-[2px] w-8 rounded-full opacity-0 transition-all duration-300 group-hover:w-14 group-hover:opacity-100"
         style={{ background: feature.iconColor }}
@@ -129,121 +132,132 @@ function FeatureCard({
 
 export function FeaturesSection() {
   return (
-    <div className="relative">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-28 z-10"
-        style={{
-          background:
-            "linear-gradient(to bottom, #050505 0%, transparent 100%)",
-        }}
-      />
-
-      <section
-        id="features"
-        aria-labelledby="features-heading"
-        className="mx-auto w-full max-w-[1280px] px-5 pb-14 pt-20 sm:px-8 sm:pb-20 sm:pt-24"
+    /*
+     * NO solid background here — the fixed PageGradient shows through.
+     * NO top fade-overlay — that was the cause of the hard cut.
+     * Padding is tightened to bridge naturally from the hero stats strip.
+     */
+    <section
+      id="features"
+      aria-labelledby="features-heading"
+      className="relative z-10 mx-auto w-full max-w-[1280px] px-5 pb-20 pt-10 sm:px-8 sm:pb-28 sm:pt-14"
+    >
+      {/* ── Section header with stagger ── */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-40px" }}
+        className="mb-12 flex flex-col gap-3"
       >
-        {/* Section label */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="mb-10 flex flex-col gap-3"
+        <motion.p
+          variants={fadeUp}
+          custom={0}
+          className="font-sans text-[0.68rem] font-medium uppercase tracking-[0.22em] text-[#d7f209]/80"
         >
-          <p className="text-[0.68rem] uppercase tracking-[0.22em] text-[#6b8510]">
-            Por qué Miunix
+          Por qué Miunix
+        </motion.p>
+
+        <motion.h2
+          id="features-heading"
+          variants={fadeUp}
+          custom={0.08}
+          className="max-w-sm text-balance font-heading font-bold text-[1.9rem] leading-[1.1] tracking-[-0.045em] text-white sm:text-[2.3rem]"
+        >
+          Todo lo que necesitas,{" "}
+          <span className="text-[#858BE3]">listo en minutos.</span>
+        </motion.h2>
+
+        <motion.p
+          variants={fadeUp}
+          custom={0.16}
+          className="max-w-2xl font-sans text-sm leading-7 text-zinc-400 sm:text-base"
+        >
+          Miunix combina descubrimiento, instalación y ejecución en una sola
+          experiencia. Entras, eliges el agente correcto y lo pones a trabajar
+          sin fricción.
+        </motion.p>
+      </motion.div>
+
+      {/* ── Feature cards grid ── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {features.map((feature, i) => (
+          <FeatureCard key={feature.id} feature={feature} index={i} />
+        ))}
+      </div>
+
+      {/* ── Bottom bento ── */}
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+        {/* Flujo simple */}
+        <motion.article
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          variants={fadeUp}
+          custom={0}
+          className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-6 py-6 backdrop-blur-sm"
+        >
+          <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/38">
+            Flujo simple
           </p>
-          <h2
-            id="features-heading"
-            className="max-w-sm text-balance text-[1.9rem] font-medium leading-[1.1] tracking-[-0.045em] text-white sm:text-[2.3rem]"
-          >
-            Todo lo que necesitas,{" "}
-            <span className="text-[#8f90ff]">listo en minutos.</span>
-          </h2>
-          <p className="max-w-2xl text-sm leading-7 text-white/60 sm:text-base">
-            Miunix combina descubrimiento, instalacion y ejecucion en una sola
-            experiencia. Entras, eliges el agente correcto y lo pones a trabajar
-            sin friccion.
+          <h3 className="mt-3 text-2xl font-medium tracking-[-0.04em] text-white">
+            Elige el agente, instálalo y ejecútalo en el mismo lugar
+          </h3>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {[
+              { n: "01", title: "Descubre",  body: "Encuentra el caso de uso correcto en marketplace." },
+              { n: "02", title: "Instala",   body: "Activa el agente sin frenar al equipo con setup técnico." },
+              { n: "03", title: "Ejecuta",   body: "Corre tareas reales y obtén respuesta en minutos." },
+            ].map((step, i) => (
+              <motion.div
+                key={step.n}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-40px" }}
+                variants={fadeUp}
+                custom={i * 0.1}
+                className="rounded-2xl border border-white/8 bg-black/20 px-4 py-4"
+              >
+                <p className="text-xs uppercase tracking-[0.18em] text-white/34">{step.n}</p>
+                <p className="mt-2 text-sm font-medium text-white">{step.title}</p>
+                <p className="mt-2 text-sm leading-6 text-white/55">{step.body}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.article>
+
+        {/* Ideal para */}
+        <motion.article
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          variants={fadeUp}
+          custom={0.1}
+          className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-6 py-6 backdrop-blur-sm"
+        >
+          <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/38">
+            Ideal para
           </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, i) => (
-            <FeatureCard key={feature.id} feature={feature} index={i} />
-          ))}
-        </div>
-
-        <div className="mt-10 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-          <motion.article
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(135deg,rgba(143,144,255,0.12),rgba(255,255,255,0.03))] px-6 py-6"
-          >
-            <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/38">
-              Flujo simple
-            </p>
-            <h3 className="mt-3 text-2xl font-medium tracking-[-0.04em] text-white">
-              Elige el agente, instálalo y ejecútalo en el mismo lugar
-            </h3>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/8 bg-black/20 px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/34">
-                  01
-                </p>
-                <p className="mt-2 text-sm font-medium text-white">Descubre</p>
-                <p className="mt-2 text-sm leading-6 text-white/58">
-                  Encuentra el caso de uso correcto en marketplace.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-black/20 px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/34">
-                  02
-                </p>
-                <p className="mt-2 text-sm font-medium text-white">Instala</p>
-                <p className="mt-2 text-sm leading-6 text-white/58">
-                  Activa el agente sin frenar al equipo con setup técnico.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-black/20 px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/34">
-                  03
-                </p>
-                <p className="mt-2 text-sm font-medium text-white">Ejecuta</p>
-                <p className="mt-2 text-sm leading-6 text-white/58">
-                  Corre tareas reales y obtén respuesta en minutos.
-                </p>
-              </div>
-            </div>
-          </motion.article>
-
-          <motion.article
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-[1.5rem] border border-white/10 bg-[#0c0c0c] px-6 py-6"
-          >
-            <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/38">
-              Ideal para
-            </p>
-            <div className="mt-4 space-y-3">
-              <div className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4 text-sm text-white/72">
-                Equipos de soporte que quieren respuestas más rápidas y consistentes.
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4 text-sm text-white/72">
-                Negocios que necesitan automatizar tareas sin depender de desarrollo.
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4 text-sm text-white/72">
-                Usuarios premium que quieren crear agentes privados con MIUNIX+.
-              </div>
-            </div>
-          </motion.article>
-        </div>
-      </section>
-    </div>
+          <div className="mt-4 space-y-3">
+            {[
+              "Equipos de soporte que quieren respuestas más rápidas y consistentes.",
+              "Negocios que necesitan automatizar tareas sin depender de desarrollo.",
+              "Usuarios premium que quieren crear agentes privados con MIUNIX+.",
+            ].map((text, i) => (
+              <motion.div
+                key={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-30px" }}
+                variants={fadeUp}
+                custom={i * 0.08}
+                className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4 text-sm text-white/65"
+              >
+                {text}
+              </motion.div>
+            ))}
+          </div>
+        </motion.article>
+      </div>
+    </section>
   );
 }

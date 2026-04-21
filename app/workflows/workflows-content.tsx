@@ -163,18 +163,29 @@ export function WorkflowsContent({
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mx-auto max-w-[62rem] text-center"
         >
-          <h1 className="text-balance font-heading text-[2.55rem] uppercase leading-[0.92] tracking-[-0.06em] text-white sm:text-[4.4rem]">
-            Workflows como producto, no como chat suelto
+          {/* Eyebrow */}
+          <p className="font-sans text-xs font-medium uppercase tracking-[0.22em] text-[#d7f209]/70">
+            Miunix Workflows
+          </p>
+
+          {/* H1 — Title Case, no uppercase, gradient keyword */}
+          <h1 className="mt-3 text-balance font-heading font-bold text-[2.4rem] leading-[1.08] tracking-[-0.05em] text-white sm:text-[4rem]">
+            Workflows que se adaptan{" "}
+            <span className="bg-gradient-to-r from-[#d7f209] via-[#a8e800] to-[#858BE3] bg-clip-text text-transparent">
+              a tus necesidades
+            </span>
           </h1>
-          <p className="mx-auto mt-5 max-w-[50rem] text-balance text-[1.05rem] leading-8 text-white/88 sm:text-[1.15rem]">
-            Aqui compras paquetes de agentes que trabajan juntos. La ejecucion vive en el dashboard,
-            dentro de un modo workflow que solo se desbloquea al comprar.
+
+          {/* Subtitle */}
+          <p className="mx-auto mt-5 max-w-[48rem] text-balance font-sans text-[1.05rem] leading-8 text-zinc-400 sm:text-[1.1rem]">
+            Compra paquetes de agentes que trabajan juntos en un flujo estructurado.
+            La ejecución vive en tu dashboard, lista en segundos.
           </p>
         </motion.div>
 
         {workflows.length === 0 ? (
-          <div className="mx-auto mt-12 w-full max-w-2xl rounded-[1.5rem] border border-dashed border-white/12 bg-white/[0.02] px-6 py-8 text-center text-sm leading-6 text-white/58">
-            Todavia no hay workflows publicados.
+          <div className="mx-auto mt-12 w-full max-w-2xl rounded-2xl border border-dashed border-white/8 bg-white/[0.02] px-6 py-8 text-center">
+            <p className="font-sans text-sm leading-6 text-zinc-400">Todavía no hay workflows publicados. Vuelve pronto.</p>
           </div>
         ) : (
           <div className="mt-12 grid gap-6 xl:grid-cols-[1.12fr_0.98fr]">
@@ -203,14 +214,14 @@ export function WorkflowsContent({
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="max-w-[36rem]">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-full border border-[#d7f205]/20 bg-[#d7f205]/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.2em] text-[#d7f205]">
+                          <span className="rounded-full border border-[#d7f209]/20 bg-[#d7f209]/8 px-3 py-1 font-sans text-[0.62rem] font-medium uppercase tracking-[0.18em] text-[#d7f209]">
                             Workflow nativo
                           </span>
                           <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.68rem] text-white/72">
                             {workflow.steps.length} etapas
                           </span>
                         </div>
-                        <h2 className="mt-4 text-3xl font-light text-white">
+                        <h2 className="mt-4 font-heading text-2xl font-semibold tracking-[-0.04em] text-white">
                           {workflow.name}
                         </h2>
                         <p className="mt-3 max-w-[34rem] text-sm leading-7 text-white/76">
@@ -252,10 +263,10 @@ export function WorkflowsContent({
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-[0.68rem] uppercase tracking-[0.24em] text-[#d7f205]">
-                      Saber mas
+                    <p className="font-sans text-[0.65rem] font-medium uppercase tracking-[0.22em] text-[#d7f209]/80">
+                      Detalles del workflow
                     </p>
-                    <h3 className="mt-3 text-3xl font-light text-white">
+                    <h3 className="mt-3 font-heading text-2xl font-semibold tracking-[-0.04em] text-white">
                       {selectedWorkflow.name}
                     </h3>
                   </div>
@@ -267,7 +278,7 @@ export function WorkflowsContent({
                 </p>
 
                 <div className="mt-6 rounded-[1.4rem] border border-white/8 bg-white/[0.03] px-4 py-4">
-                  <p className="text-[0.72rem] uppercase tracking-[0.2em] text-white/46">
+                  <p className="font-sans text-[0.65rem] font-medium uppercase tracking-[0.2em] text-zinc-500">
                     Entregable
                   </p>
                   <p className="mt-2 text-sm leading-7 text-white/82">
@@ -290,8 +301,8 @@ export function WorkflowsContent({
                 </div>
 
                 <div className="mt-6">
-                  <p className="text-[0.72rem] uppercase tracking-[0.2em] text-white/46">
-                    Como trabaja
+                  <p className="font-sans text-[0.65rem] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                    Cómo trabaja
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     {selectedWorkflow.steps.map((step, index) => (

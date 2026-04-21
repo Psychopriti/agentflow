@@ -1,9 +1,12 @@
 import { listAgents } from "@/ai/agent-runner";
 import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { getAgentBySlug } from "@/lib/agents";
 import { InView } from "@/components/ui/in-view";
 import { MarketplaceHeading } from "./marketplace-heading";
 import { MarketplaceCarousel } from "./marketplace-carousel";
+import { ShoppingBag } from "lucide-react";
+import Link from "next/link";
 
 export default async function MarketplacePage() {
   const publishedAgents = await listAgents();
@@ -29,33 +32,58 @@ export default async function MarketplacePage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white">
-      <section className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col px-5 py-5 sm:px-8 sm:py-7">
-        <div className="flex min-h-[calc(100vh-2.5rem)] flex-1 flex-col rounded-[2rem] border border-white/8 bg-[#080808] px-5 py-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:px-8 sm:py-7 lg:px-10 lg:py-8">
-          <SiteHeader currentPath="/marketplace" />
+    <div className="flex min-h-screen flex-col bg-[#09090b] text-white">
+      <SiteHeader currentPath="/marketplace" />
 
-          <section className="flex flex-1 flex-col items-center justify-center pb-6 pt-12 sm:pt-16">
-            <MarketplaceHeading />
+      <main className="relative z-10 flex flex-1 flex-col">
+        <section
+          className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col items-center px-5 pb-16 pt-14 sm:px-8 sm:pt-20"
+          aria-label="Catálogo de agentes"
+        >
+          <MarketplaceHeading />
 
-            {marketplaceItems.length === 0 ? (
-              <InView
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                viewOptions={{ once: true }}
-              >
-                <div className="mt-12 w-full max-w-2xl rounded-[1.5rem] border border-dashed border-white/12 bg-white/[0.02] px-6 py-8 text-center text-sm leading-6 text-white/58">
-                  Todavia no hay agentes publicados en el marketplace.
+          {marketplaceItems.length === 0 ? (
+            <InView
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              viewOptions={{ once: true }}
+            >
+              {/* ── Empty state ── */}
+              <div className="mt-16 flex flex-col items-center gap-6 text-center">
+                <div className="flex size-16 items-center justify-center rounded-2xl border border-white/8 bg-zinc-900">
+                  <ShoppingBag className="size-7 text-zinc-500" strokeWidth={1.5} />
                 </div>
-              </InView>
-            ) : (
-              <MarketplaceCarousel items={marketplaceItems} />
-            )}
-          </section>
-        </div>
-      </section>
-    </main>
+                <div className="space-y-2">
+                  <p className="font-heading font-semibold text-lg text-zinc-50">
+                    Aún no hay agentes disponibles
+                  </p>
+                  <p className="max-w-xs font-sans text-sm leading-6 text-zinc-400">
+                    Estamos preparando el catálogo. Vuelve pronto para descubrir agentes que transformarán tu negocio.
+                  </p>
+                </div>
+                <Link
+                  href="/"
+                  className="
+                    inline-flex items-center gap-2 rounded-full bg-[#d7f209]
+                    px-5 py-2.5 font-sans text-sm font-semibold text-[#09090b]
+                    transition-all duration-200 hover:shadow-[0_0_20px_rgba(215,242,9,0.4)]
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d7f209]/60
+                  "
+                >
+                  Volver al inicio
+                </Link>
+              </div>
+            </InView>
+          ) : (
+            <MarketplaceCarousel items={marketplaceItems} />
+          )}
+        </section>
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }

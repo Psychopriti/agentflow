@@ -1,198 +1,214 @@
 "use client";
 
 import Link from "next/link";
-import { MoveUpRight } from "lucide-react";
+import { MoveUpRight, Zap, Clock, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 
-import { TextEffect } from "@/components/ui/text-effect";
+// ─── Stats strip ─────────────────────────────────────────────────────────────
 
-const agentLabels = [
+const stats = [
   {
-    label: "Implementacion de Campanas",
-    className: "left-8 top-9 sm:left-12 sm:top-10",
-    delay: 0.6,
+    id: "experiencia",
+    icon: Sparkles,
+    label: "Experiencia",
+    value: "Zero-code",
+    detail: "Pensado para equipos que quieren ejecutar, no programar.",
+    accent: "#d9ff00",
+    glow: "rgba(217,255,0,0.18)",
+    iconBg: "rgba(217,255,0,0.1)",
   },
   {
-    label: "Agente de Investigacion",
-    className: "right-4 top-8 sm:right-6 sm:top-9",
-    delay: 0.8,
+    id: "arranque",
+    icon: Clock,
+    label: "Tiempo de Arranque",
+    value: "Minutos",
+    detail: "Sin setup complejo ni implementaciones largas para empezar.",
+    accent: "#8f90ff",
+    glow: "rgba(143,144,255,0.2)",
+    iconBg: "rgba(143,144,255,0.1)",
   },
   {
-    label: "Creacion de Contenido",
-    className: "bottom-6 left-4 sm:bottom-7 sm:left-3",
-    delay: 1.0,
+    id: "casos",
+    icon: Zap,
+    label: "Casos de Uso",
+    value: "Reales",
+    detail: "Soporte, ventas, onboarding y flujos internos con valor claro.",
+    accent: "#d9ff00",
+    glow: "rgba(217,255,0,0.18)",
+    iconBg: "rgba(217,255,0,0.1)",
   },
-];
+] as const;
+
+function StatCard({
+  stat,
+  index,
+}: {
+  stat: (typeof stats)[number];
+  index: number;
+}) {
+  const Icon = stat.icon;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.6,
+        delay: 0.75 + index * 0.1,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      whileHover={{
+        y: -6,
+        boxShadow: `0 20px 50px ${stat.glow}`,
+        transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+      }}
+      style={{ "--accent": stat.accent, "--glow": stat.glow } as React.CSSProperties}
+      className="stat-card group relative flex flex-col gap-4 rounded-2xl border border-white/8 bg-zinc-900/60 p-6 backdrop-blur-sm transition-all duration-200"
+    >
+      {/* Top edge highlight on hover */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-[1.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: `linear-gradient(90deg,transparent,${stat.accent}66,transparent)` }}
+      />
+
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-xl"
+          style={{ background: stat.iconBg }}
+        >
+          <Icon className="h-5 w-5" style={{ color: stat.accent }} strokeWidth={1.7} />
+        </div>
+        <p className="text-[0.68rem] font-medium uppercase tracking-[0.22em] text-white/45">
+          {stat.label}
+        </p>
+      </div>
+
+      <div>
+        <p
+          className="text-[2rem] font-semibold leading-none tracking-[-0.055em]"
+          style={{ color: stat.accent }}
+        >
+          {stat.value}
+        </p>
+        <p className="mt-2 text-sm leading-6 text-white/54">{stat.detail}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Hero Section ─────────────────────────────────────────────────────────────
 
 export function HeroSection() {
   return (
     <div
       id="inicio"
-      className="flex flex-1 flex-col justify-between gap-10 pb-4 pt-10 sm:pt-14"
+      className="relative flex flex-1 flex-col items-center justify-center gap-14 pb-4 pt-10 sm:pt-16"
     >
-      <div className="space-y-8">
-        <TextEffect
-          as="h1"
-          per="word"
-          preset="fade-in-blur"
-          delay={0.15}
-          speedReveal={1.3}
-          speedSegment={1.2}
-          className="mx-auto max-w-5xl text-balance text-center text-[2.4rem] font-medium leading-[0.98] tracking-[-0.065em] text-white sm:text-[3.8rem] lg:text-[4.9rem]"
-        >
-          Instala agentes de IA en minutos, sin codigo
-        </TextEffect>
 
+      {/* ── Copy ── */}
+      <div className="relative z-10 flex flex-col items-center gap-8 px-5 text-center sm:px-10">
+        {/* Badge */}
         <motion.div
-          initial={{ opacity: 0, y: 36, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{
-            duration: 0.75,
-            delay: 0.45,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="relative mx-auto w-full max-w-[1040px] pt-10"
+          initial={{ opacity: 0, scale: 0.88 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="inline-flex items-center gap-2 rounded-full border border-[#d9ff00]/20 bg-[#d9ff00]/8 px-4 py-1.5 text-[0.68rem] font-medium uppercase tracking-[0.28em] text-[#b8d600]"
         >
-          <div className="absolute inset-x-0 bottom-0 h-[58%] rounded-[2rem] bg-[#d9ff00]" />
-
-          <div className="relative mx-auto w-[92%] overflow-hidden rounded-[1.8rem] border border-white/10 bg-[#cab8a9] shadow-[0_35px_70px_rgba(0,0,0,0.35)]">
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(66,44,30,0.15),rgba(255,255,255,0.08),rgba(97,58,34,0.18))]" />
-            <div className="absolute inset-y-0 left-0 w-[12%] bg-[linear-gradient(180deg,#bab6b0,#7d7066)]" />
-            <div className="absolute inset-y-0 left-[7.5%] w-[2.5%] bg-[linear-gradient(180deg,#87786d,#54483f)]" />
-            <div className="absolute left-[18%] top-[7%] h-[16%] w-[22%] rounded-md bg-[linear-gradient(180deg,#8b6845,#c2915e)] shadow-[0_10px_18px_rgba(0,0,0,0.16)]" />
-            <div className="absolute left-[47%] top-[8%] h-[7%] w-[11%] rounded-full bg-[#314538]/40 blur-xl" />
-            <div className="absolute right-[11%] top-[11%] h-[28%] w-[19%] rounded-[0.8rem] border border-[#a79083] bg-[linear-gradient(180deg,#f1e5db,#d3c0b0)]" />
-            <div className="absolute bottom-[13%] left-[19%] h-[22%] w-[22%] rounded-t-[0.8rem] bg-[linear-gradient(180deg,#7d5c3f,#53311f)]" />
-            <div className="absolute bottom-[15%] left-[25%] h-[16%] w-[12%] rounded-[0.6rem] bg-[linear-gradient(180deg,#d7d6d4,#8c8c8c)] shadow-[0_12px_20px_rgba(0,0,0,0.12)]" />
-            <div className="absolute bottom-[13%] right-[20%] h-[34%] w-[19%] rounded-[45%_45%_38%_38%] bg-[linear-gradient(180deg,#15403b,#08231f)]" />
-            <div className="absolute bottom-[10%] right-[14%] h-[36%] w-[10%] rounded-[40%] bg-[linear-gradient(180deg,#c18b60,#82552f)]" />
-            <div className="absolute bottom-[3%] right-[8%] h-[42%] w-[18%] rounded-t-[45%] rounded-b-[16%] bg-[linear-gradient(180deg,#bb885d,#774d2d)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_55%_38%,rgba(255,255,255,0.38),transparent_18%),radial-gradient(circle_at_48%_22%,rgba(255,255,255,0.2),transparent_12%),radial-gradient(circle_at_63%_65%,rgba(0,0,0,0.18),transparent_22%)]" />
-            <div className="relative aspect-[16/8.3] w-full" />
-
-            {agentLabels.map((item) => (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0, scale: 0.75, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{
-                  duration: 0.5,
-                  delay: item.delay,
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 24,
-                }}
-                whileHover={{ scale: 1.06, y: -3 }}
-                className={`absolute ${item.className} cursor-default rounded-full bg-[#8f90ff]/90 px-5 py-3 text-center text-xs font-light text-white shadow-[0_10px_26px_rgba(143,144,255,0.32)] sm:px-7 sm:text-sm`}
-              >
-                <span className="block max-w-[10rem] leading-tight sm:max-w-[12rem]">
-                  {item.label}
-                </span>
-              </motion.div>
-            ))}
-          </div>
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#d9ff00]" />
+          IA sin código · Instalación en segundos
         </motion.div>
 
-        <motion.div
+        {/* Headline */}
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.65,
-            delay: 0.28,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]"
+          transition={{ duration: 0.75, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto max-w-4xl text-balance font-heading font-bold text-[2.5rem] leading-[0.95] tracking-[-0.065em] text-white sm:text-[3.8rem] lg:text-[5rem]"
         >
-          <div className="max-w-2xl space-y-4">
-            <p className="text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
-              Descubre, instala y ejecuta agentes listos para soporte,
-              marketing, research y operaciones desde una experiencia visual
-              mucho mas simple.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/marketplace"
-                className="inline-flex items-center gap-2 rounded-full border border-[#d9ff00]/30 bg-[#d9ff00] px-5 py-3 text-sm font-medium text-black transition hover:bg-[#e5ff45]"
-              >
-                Explorar marketplace
-                <MoveUpRight className="size-4" />
-              </Link>
-              <a
-                href="#features"
-                className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10"
-              >
-                Ver beneficios
-                <MoveUpRight className="size-4" />
-              </a>
-            </div>
-          </div>
+          Instala agentes de IA{" "}
+          <span className="bg-gradient-to-r from-[#d7f209] via-[#a8e800] to-[#858BE3] bg-clip-text text-transparent">
+            en minutos,
+          </span>{" "}
+          sin código
+        </motion.h1>
 
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-            <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-white/35">
-                Tiempo de arranque
-              </p>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.05em] text-[#d9ff00]">
-                Minutos
-              </p>
-              <p className="mt-2 text-sm leading-6 text-white/58">
-                Sin setup complejo ni implementaciones largas para empezar.
-              </p>
-            </div>
-            <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-white/35">
-                Experiencia
-              </p>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.05em] text-white">
-                Zero-code
-              </p>
-              <p className="mt-2 text-sm leading-6 text-white/58">
-                Pensado para equipos que quieren ejecutar, no programar.
-              </p>
-            </div>
-            <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-white/35">
-                Casos de uso
-              </p>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.05em] text-white">
-                Reales
-              </p>
-              <p className="mt-2 text-sm leading-6 text-white/58">
-                Soporte, ventas, onboarding y flujos internos con valor claro.
-              </p>
-            </div>
-          </div>
+        {/* Subheadline */}
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto max-w-xl text-base leading-7 text-white/58 sm:text-lg sm:leading-8"
+        >
+          Transforma tu negocio con agentes inteligentes listos para usar.
+          Explora, instala y ejecuta en segundos.
+        </motion.p>
+
+        {/* CTA buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.38, ease: [0.22, 1, 0.36, 1] }}
+          className="flex flex-wrap justify-center gap-3"
+        >
+          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+            <Link
+              href="/marketplace"
+              className="group inline-flex items-center gap-2 rounded-full border border-[#d9ff00]/40 bg-[#d9ff00] px-7 py-3.5 text-sm font-semibold text-black shadow-[0_0_28px_rgba(217,255,0,0.35)] transition hover:bg-[#e5ff45] hover:shadow-[0_0_42px_rgba(217,255,0,0.55)]"
+            >
+              Explorar Marketplace
+              <MoveUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+            <a
+              href="#features"
+              className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/6 px-7 py-3.5 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/12"
+            >
+              Ver beneficios
+              <MoveUpRight className="size-4" />
+            </a>
+          </motion.div>
         </motion.div>
       </div>
 
-      <motion.footer
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 1.1, ease: "easeOut" }}
-        className="flex flex-col gap-6 pt-4 text-[#7f9d12] sm:flex-row sm:items-end sm:justify-between"
-      >
-        <div className="flex items-end gap-4">
-          <div className="flex gap-2">
-            <span className="h-12 w-[2px] origin-bottom -rotate-[16deg] bg-[#0b0b0b] shadow-[0_0_0_1px_rgba(127,157,18,0.18)]" />
-            <span className="mt-3 h-8 w-[2px] origin-bottom rotate-[12deg] bg-[#0b0b0b] shadow-[0_0_0_1px_rgba(127,157,18,0.18)]" />
-          </div>
-          <p className="font-heading text-[0.62rem] uppercase tracking-[0.18em] text-[#D7F205]">
-            Miunix.
-            <span className="ml-2 text-[#6b8510]">2026</span>
-          </p>
-        </div>
+      {/* ── Stats strip ── */}
+      <div className="relative z-10 w-full max-w-5xl px-5 sm:px-8">
+        {/* Divider */}
+        <motion.div
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: 1, opacity: 1 }}
+          transition={{ duration: 0.7, delay: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-8 h-px origin-left bg-gradient-to-r from-transparent via-white/12 to-transparent"
+        />
 
+        <div className="grid gap-4 sm:grid-cols-3">
+          {stats.map((stat, i) => (
+            <StatCard key={stat.id} stat={stat} index={i} />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Footer strip ── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 1.1 }}
+        className="relative z-10 flex w-full items-center justify-between px-5 sm:px-8"
+      >
+        <p className="font-heading text-[0.62rem] uppercase tracking-[0.18em] text-[#D7F205]">
+          Miunix.{" "}
+          <span className="text-[#6b8510]">2026</span>
+        </p>
         <motion.a
-          id="explorar"
           href="#features"
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          className="inline-flex items-center gap-2 self-start rounded-full border border-[#222] px-4 py-2 text-[0.68rem] uppercase tracking-[0.24em] text-[#6b8510] transition hover:border-[#38451a] hover:text-[#99bf17] sm:self-auto"
+          className="inline-flex items-center gap-2 rounded-full border border-[#222] px-4 py-2 text-[0.68rem] uppercase tracking-[0.24em] text-[#6b8510] transition hover:border-[#38451a] hover:text-[#99bf17]"
         >
           Scroll para explorar
           <MoveUpRight className="size-3.5" />
         </motion.a>
-      </motion.footer>
+      </motion.div>
     </div>
   );
 }
