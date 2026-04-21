@@ -24,7 +24,7 @@ const CTA_BTN =
   "border-[#858BE3]/40 bg-zinc-800 text-[#858BE3] hover:bg-zinc-700 hover:border-[#858BE3]/70 hover:text-[#a8abf0] shadow-[0_0_12px_rgba(133,139,227,0.15)] hover:shadow-[0_0_20px_rgba(133,139,227,0.3)]";
 
 const BASE =
-  "h-auto rounded-full border px-4 py-2.5 font-sans text-[0.74rem] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#858BE3]/60";
+  "h-auto rounded-full border px-3 py-2 font-sans text-[0.72rem] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#858BE3]/60 sm:px-4 sm:py-2.5 sm:text-[0.74rem] min-h-[40px] inline-flex items-center";
 
 export function AuthSessionControls({
   isAuthenticated,

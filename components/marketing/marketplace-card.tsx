@@ -124,12 +124,13 @@ export function MarketplaceCard({
         whileHover={{ y: -8, scale: 1.02 }}
         transition={{ type: "spring", stiffness: 320, damping: 26 }}
         className="
-          relative flex min-h-[26rem] flex-col items-center
+          relative flex min-h-[22rem] flex-col items-center
           rounded-[calc(2rem-3px)]
           border border-white/10
           bg-[linear-gradient(180deg,#8b8b90_0%,#5b5b72_62%,#43436d_100%)]
-          px-6 pb-7 pt-8 text-center
+          px-5 pb-6 pt-7 text-center
           shadow-[0_24px_60px_rgba(0,0,0,0.35)]
+          sm:min-h-[26rem] sm:px-6 sm:pb-7 sm:pt-8
         "
       >
         {/* ── Icon circle (avatar equivalent) ── */}

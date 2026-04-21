@@ -16,7 +16,7 @@ export function SiteFooter() {
 
   return (
     <footer className="relative z-10 mt-auto border-t border-white/6 glass">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-col items-center gap-6 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col items-center gap-5 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-10">
 
         {/* ── Logo ── */}
         <Link
@@ -34,16 +34,12 @@ export function SiteFooter() {
 
         {/* ── Nav links ── */}
         <nav aria-label="Navegación de pie de página">
-          <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+          <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2">
             {footerLinks.map((link) => (
               <li key={link.label}>
                 <Link
                   href={link.href}
-                  className="
-                    text-sm text-zinc-400
-                    transition-colors duration-200 hover:text-zinc-100
-                    focus-visible:outline-none focus-visible:underline
-                  "
+                  className="inline-flex min-h-[44px] items-center text-sm text-zinc-400 transition-colors duration-200 hover:text-zinc-100 focus-visible:outline-none focus-visible:underline"
                 >
                   {link.label}
                 </Link>

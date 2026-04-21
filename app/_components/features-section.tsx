@@ -140,14 +140,14 @@ export function FeaturesSection() {
     <section
       id="features"
       aria-labelledby="features-heading"
-      className="relative z-10 mx-auto w-full max-w-[1280px] px-5 pb-20 pt-10 sm:px-8 sm:pb-28 sm:pt-14"
+      className="relative z-10 mx-auto w-full max-w-[1280px] px-4 pb-16 pt-8 sm:px-8 sm:pb-28 sm:pt-14"
     >
       {/* ── Section header with stagger ── */}
       <motion.div
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-40px" }}
-        className="mb-12 flex flex-col gap-3"
+        className="mb-8 flex flex-col gap-3 sm:mb-12"
       >
         <motion.p
           variants={fadeUp}
@@ -202,7 +202,7 @@ export function FeaturesSection() {
           <h3 className="mt-3 text-2xl font-medium tracking-[-0.04em] text-white">
             Elige el agente, instálalo y ejecútalo en el mismo lugar
           </h3>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
               { n: "01", title: "Descubre",  body: "Encuentra el caso de uso correcto en marketplace." },
               { n: "02", title: "Instala",   body: "Activa el agente sin frenar al equipo con setup técnico." },

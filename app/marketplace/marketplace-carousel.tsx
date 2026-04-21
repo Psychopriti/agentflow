@@ -42,7 +42,7 @@ export function MarketplaceCarousel({ items }: MarketplaceCarouselProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="grid w-full gap-8 lg:grid-cols-3 lg:gap-16"
+            className="grid w-full gap-6 sm:gap-8 lg:grid-cols-3 lg:gap-16"
           >
             {visibleItems.map((agent, i) => (
               <motion.div
