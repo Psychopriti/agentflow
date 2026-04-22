@@ -23,7 +23,7 @@ type WorkflowStepRunRow =
 
 type WorkflowContext = Record<string, Json>;
 
-const WORKFLOW_STEP_MODEL = "gpt-5-mini";
+const WORKFLOW_STEP_MODEL = "gpt-5.4";
 
 export type WorkflowRunInput = {
   profileId: string;
