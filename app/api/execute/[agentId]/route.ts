@@ -6,12 +6,25 @@ import {
   parseJsonBody,
   requireAuthenticatedProfile,
 } from "@/lib/api";
+import { enforceRateLimit } from "@/lib/security";
+
+const MAX_AGENT_INPUT_LENGTH = 2500;
 
 export async function POST(
   request: Request,
   context: RouteContext<"/api/execute/[agentId]">,
 ) {
   try {
+    const rateLimitResponse = enforceRateLimit(request, {
+      keyPrefix: "execute-agent",
+      limit: 30,
+      windowMs: 60 * 60 * 1000,
+    });
+
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const { agentId } = await context.params;
     const auth = await requireAuthenticatedProfile();
 
@@ -38,6 +51,13 @@ export async function POST(
     if (!input.trim()) {
       return jsonError({
         error: "input is required.",
+        status: 400,
+      });
+    }
+
+    if (input.length > MAX_AGENT_INPUT_LENGTH) {
+      return jsonError({
+        error: `input must be ${MAX_AGENT_INPUT_LENGTH} characters or fewer.`,
         status: 400,
       });
     }

@@ -7,6 +7,7 @@ import {
 } from "@/lib/api";
 import { OPENAI_QUALITY_MODEL, openai } from "@/lib/openai";
 import { ensurePremiumUserProfile } from "@/lib/premium";
+import { enforceRateLimit } from "@/lib/security";
 
 type AgentBlueprintResponse = {
   name: string;
@@ -65,6 +66,16 @@ function validateBlueprint(payload: Record<string, unknown>): AgentBlueprintResp
 }
 
 export async function POST(request: Request) {
+  const rateLimitResponse = enforceRateLimit(request, {
+    keyPrefix: "agent-coach",
+    limit: 15,
+    windowMs: 60 * 60 * 1000,
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const auth = await requireAuthenticatedProfile();
 
   if (auth.errorResponse || !auth.profile) {

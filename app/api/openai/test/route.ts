@@ -1,7 +1,25 @@
 import { OPENAI_DEFAULT_MODEL, openai } from "@/lib/openai";
 import { jsonError, jsonSuccess } from "@/lib/api";
+import { enforceRateLimit } from "@/lib/security";
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (process.env.NODE_ENV === "production") {
+    return jsonError({
+      error: "OpenAI test endpoint is disabled in production.",
+      status: 404,
+    });
+  }
+
+  const rateLimitResponse = enforceRateLimit(request, {
+    keyPrefix: "openai-test",
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const startedAt = Date.now();
 
   try {

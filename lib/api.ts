@@ -63,12 +63,11 @@ function inferErrorCode(status: number): ApiErrorCode {
 }
 
 export function handleRouteError(error: unknown) {
-  const message =
-    error instanceof Error ? error.message : "Internal server error";
-  const status = error instanceof AgentExecutionError ? error.statusCode : 500;
+  const isKnownAgentError = error instanceof AgentExecutionError;
+  const status = isKnownAgentError ? error.statusCode : 500;
 
   return jsonError({
-    error: message,
+    error: isKnownAgentError ? error.message : "Internal server error",
     status,
   });
 }

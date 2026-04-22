@@ -5,6 +5,7 @@ import { createServerSupabaseClient } from "@/lib/supabase";
 import { OPENAI_DEFAULT_MODEL, openai } from "@/lib/openai";
 import { ensureProfileForUser } from "@/lib/auth";
 import { jsonError, parseJsonBody } from "@/lib/api";
+import { enforceRateLimit } from "@/lib/security";
 
 const FREE_PROMPT_LIMIT = 10;
 const COOKIE_NAME = "miunix_assistant_runs";
@@ -70,6 +71,16 @@ async function getPremiumAccess() {
 }
 
 export async function POST(request: Request) {
+  const rateLimitResponse = enforceRateLimit(request, {
+    keyPrefix: "miunix-assistant",
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const parsedBody = await parseJsonBody<AssistantRequest>(request);
 
   if (parsedBody.errorResponse || !parsedBody.data) {
