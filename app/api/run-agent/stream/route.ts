@@ -6,7 +6,7 @@ import {
 } from "@/lib/api";
 import { enforceRateLimit } from "@/lib/security";
 
-const MAX_AGENT_INPUT_LENGTH = 2500;
+const MAX_AGENT_INPUT_LENGTH = 4000;
 
 function encodeSseEvent(event: string, payload: unknown) {
   return `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
@@ -15,7 +15,7 @@ function encodeSseEvent(event: string, payload: unknown) {
 export async function POST(request: Request) {
   const rateLimitResponse = enforceRateLimit(request, {
     keyPrefix: "run-agent-stream",
-    limit: 20,
+    limit: 100,
     windowMs: 60 * 60 * 1000,
   });
 

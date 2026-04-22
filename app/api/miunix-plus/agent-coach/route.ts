@@ -68,7 +68,7 @@ function validateBlueprint(payload: Record<string, unknown>): AgentBlueprintResp
 export async function POST(request: Request) {
   const rateLimitResponse = enforceRateLimit(request, {
     keyPrefix: "agent-coach",
-    limit: 15,
+    limit: 50,
     windowMs: 60 * 60 * 1000,
   });
 

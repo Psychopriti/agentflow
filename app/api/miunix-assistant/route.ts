@@ -73,7 +73,7 @@ async function getPremiumAccess() {
 export async function POST(request: Request) {
   const rateLimitResponse = enforceRateLimit(request, {
     keyPrefix: "miunix-assistant",
-    limit: 20,
+    limit: 120,
     windowMs: 60 * 60 * 1000,
   });
 

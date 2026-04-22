@@ -8,13 +8,13 @@ import {
 } from "@/lib/api";
 import { enforceRateLimit } from "@/lib/security";
 
-const MAX_AGENT_INPUT_LENGTH = 2500;
+const MAX_AGENT_INPUT_LENGTH = 4000;
 
 export async function POST(request: Request) {
   try {
     const rateLimitResponse = enforceRateLimit(request, {
       keyPrefix: "run-agent",
-      limit: 30,
+      limit: 120,
       windowMs: 60 * 60 * 1000,
     });
 
