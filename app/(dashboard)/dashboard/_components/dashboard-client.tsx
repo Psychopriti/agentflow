@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   LockKeyhole,
+  Menu,
   PencilLine,
   Plus,
   Search,
@@ -16,6 +17,7 @@ import {
   Sparkles,
   Trash2,
   User,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ReactNode } from "react";
@@ -1595,47 +1597,190 @@ const navLinks = [
   { label: "Developers", href: "/developers" },
 ];
 
-function DashboardHeader({ userEmail }: { userEmail?: string | null }) {
+// ─── Mobile Drawer ────────────────────────────────────────────────────────────
+
+function DashboardMobileDrawer({
+  open,
+  onClose,
+  userEmail,
+}: {
+  open: boolean;
+  onClose: () => void;
+  userEmail?: string | null;
+}) {
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
   return (
-    <header className="flex flex-col gap-5 border-b border-white/6 bg-[#0A0A0A] px-5 py-3 lg:flex-row lg:items-center lg:justify-between">
-      <Link
-        href="/"
-        className="w-fit font-heading text-[1.7rem] uppercase tracking-[-0.04em] !text-[#D7F205]"
-        style={{ color: "#D7F205" }}
-      >
-        Miunix
-      </Link>
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+            aria-hidden
+          />
 
-      <nav className="flex justify-center lg:flex-1">
-        <div className="flex w-full max-w-max flex-wrap items-center justify-center gap-1.5 rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(88,88,88,0.85),rgba(56,56,56,0.92))] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur">
-          {navLinks.map((item) => {
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`rounded-full px-3 py-1.5 text-[0.68rem] transition ${item.href === "/dashboard"
-                    ? "bg-white/10 text-[#d7f205]"
-                    : "text-white/80 hover:bg-white/8 hover:text-white"
-                  }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+          {/* Slide-in drawer */}
+          <motion.nav
+            key="drawer"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-y-0 right-0 z-50 flex w-[min(17rem,90vw)] flex-col border-l border-white/8 bg-[#0c0c0f]/98 px-5 py-7 backdrop-blur-2xl"
+            aria-label="Menú de navegación móvil"
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="mb-7 self-end flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-white/50 transition hover:bg-white/8 hover:text-white"
+              aria-label="Cerrar menú"
+            >
+              <X className="h-5 w-5" />
+            </button>
 
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/4 py-1.5 pl-2 pr-3 text-xs text-white/65">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-blue-600">
-            <User className="h-3 w-3 text-white" />
+            {/* Logo */}
+            <Link
+              href="/"
+              onClick={onClose}
+              className="mb-7 font-heading font-bold text-[1.25rem] uppercase tracking-[-0.05em] text-[#d7f209]"
+            >
+              Miunix
+            </Link>
+
+            {/* Nav links */}
+            <ul className="flex flex-col gap-1">
+              {navLinks.map((item, i) => {
+                const isActive = item.href === "/dashboard";
+                return (
+                  <motion.li
+                    key={item.label}
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`flex min-h-[48px] items-center rounded-xl px-4 text-sm font-medium transition-all ${
+                        isActive
+                          ? "bg-[#858BE3]/15 text-[#858BE3]"
+                          : "text-white/60 hover:bg-white/6 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.li>
+                );
+              })}
+            </ul>
+
+            {/* User pill at bottom */}
+            {userEmail && (
+              <div className="mt-auto pt-6">
+                <Link
+                  href="/mi-cuenta"
+                  onClick={onClose}
+                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/4 px-4 py-3 text-sm text-white/65 transition hover:bg-white/8"
+                >
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-blue-600">
+                    <User className="h-3.5 w-3.5 text-white" />
+                  </div>
+                  <span className="truncate">{userEmail.split("@")[0]}</span>
+                </Link>
+              </div>
+            )}
+          </motion.nav>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ─── Dashboard Header ─────────────────────────────────────────────────────────
+
+function DashboardHeader({ userEmail }: { userEmail?: string | null }) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  return (
+    <>
+      <header className="flex items-center justify-between border-b border-white/6 bg-[#0A0A0A] px-4 py-0 sm:px-5">
+        <div className="flex h-14 w-full items-center justify-between gap-3 sm:h-16">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="shrink-0 font-heading text-[1.5rem] uppercase tracking-[-0.04em] text-[#D7F205]"
+            style={{ color: "#D7F205" }}
+          >
+            Miunix
+          </Link>
+
+          {/* Desktop pill nav — hidden below md */}
+          <nav className="hidden flex-1 justify-center md:flex" aria-label="Navegación principal">
+            <ul className="flex items-center gap-1 rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(88,88,88,0.85),rgba(56,56,56,0.92))] px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur">
+              {navLinks.map((item) => {
+                const isActive = item.href === "/dashboard";
+                return (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      className={`inline-flex min-h-[34px] items-center rounded-full px-3 py-1.5 text-[0.68rem] transition ${
+                        isActive
+                          ? "bg-white/10 text-[#d7f205]"
+                          : "text-white/80 hover:bg-white/8 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          {/* Right side */}
+          <div className="flex shrink-0 items-center gap-2">
+            {/* User pill — hidden on mobile */}
+            <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/4 py-1.5 pl-2 pr-3 text-xs text-white/65 sm:flex">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-blue-600">
+                <User className="h-3 w-3 text-white" />
+              </div>
+              <span className="hidden max-w-[120px] truncate sm:block">
+                {userEmail ? userEmail.split("@")[0] : "Mi Perfil"}
+              </span>
+              <ArrowUpRight className="h-3 w-3 opacity-50" />
+            </div>
+
+            {/* Hamburger — visible below md */}
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-white/60 transition hover:bg-white/8 hover:text-white md:hidden"
+              aria-label="Abrir menú de navegación"
+              aria-expanded={drawerOpen}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
           </div>
-          <span className="hidden max-w-[120px] truncate sm:block">
-            {userEmail ? userEmail.split("@")[0] : "Mi Perfil"}
-          </span>
-          <ArrowUpRight className="h-3 w-3 opacity-50" />
         </div>
-      </div>
-    </header>
+      </header>
+
+      <DashboardMobileDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        userEmail={userEmail}
+      />
+    </>
   );
 }
